@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?language JavaScript?>
+<?import javafx.geometry.Insets ?>
+<?import javafx.scene.Cursor ?>
+<?import javafx.scene.Group ?>
+<?import javafx.scene.chart.LineChart ?>
+<?import javafx.scene.chart.NumberAxis ?>
+<?import javafx.scene.control.Spinner ?>
+<?import javafx.scene.control.TextField ?>
+<?import javafx.scene.control.TitledPane ?>
+<?import javafx.scene.layout.AnchorPane ?>
+<?import javafx.scene.layout.ColumnConstraints ?>
+<?import javafx.scene.layout.GridPane ?>
+<?import javafx.scene.layout.Pane ?>
+<?import javafx.scene.layout.RowConstraints ?>
+<?import javafx.scene.layout.VBox ?>
+<?import javafx.scene.shape.Circle ?>
+<?import javafx.scene.shape.Line ?>
+<?import javafx.scene.text.Text ?>
+<?import flimlib.flimj.ui.controls.NumericSpinner ?>
+
+<AnchorPane stylesheets="@../css/plot.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flimlib.flimj.ui.controller.PlotCtrl">
+  <children>
+    <TitledPane collapsible="false" prefHeight="400.0" text="Plot" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <content>
+        <VBox styleClass="flim-tab-vbox">
+          <children>
+            <VBox styleClass="tab-pane-list-vbox" VBox.vgrow="ALWAYS">
+              <children>
+                <AnchorPane prefHeight="250.0" VBox.vgrow="ALWAYS">
+                  <children>
+                    <LineChart fx:id="fitPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <xAxis>
+                        <NumberAxis label="ns" prefHeight="44.0" prefWidth="451.0" side="TOP" />
+                      </xAxis>
+                      <yAxis>
+                        <NumberAxis label="Fit" side="LEFT" tickLabelGap="1.0" tickLabelRotation="-90.0" tickUnit="1.0" />
+                      </yAxis>
+                      <padding>
+                        <Insets bottom="1.0" left="1.0" right="10.0" top="1.0" />
+                      </padding>
+                    </LineChart>
+                    <AnchorPane fx:id="fitPlotAreaPane" layoutX="62.0" layoutY="56.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="62.0" AnchorPane.rightAnchor="19.0" AnchorPane.topAnchor="56.0">
+                      <children>
+                        <Group fx:id="lCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="0.0">
+                          <children>
+                            <Line fx:id="lCsrBar" endY="135.0" startY="0.0" />
+                            <Circle fx:id="lCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+                          </children>
+                          <cursor>
+                            <Cursor fx:constant="H_RESIZE" />
+                          </cursor>
+                        </Group>
+                        <Group fx:id="rCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="440.0">
+                          <children>
+                            <Line fx:id="rCsrBar" endY="135.0" startY="0.0" />
+                            <Circle fx:id="rCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+                          </children>
+                          <cursor>
+                            <Cursor fx:constant="H_RESIZE" />
+                          </cursor>
+                        </Group>
+                      </children>
+                    </AnchorPane>
+                  </children>
+                  <VBox.margin>
+                    <Insets />
+                  </VBox.margin>
+                </AnchorPane>
+                <AnchorPane maxHeight="200.0" minHeight="50.0" prefHeight="150.0" VBox.vgrow="SOMETIMES">
+                  <children>
+                    <LineChart fx:id="resPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <xAxis>
+                        <NumberAxis />
+                      </xAxis>
+                      <yAxis>
+                        <NumberAxis label="Res" lowerBound="-10.0" side="LEFT" tickLabelGap="1.0" tickLabelRotation="-90.0" tickUnit="1.0" upperBound="10.0" />
+                      </yAxis>
+                      <padding>
+                        <Insets bottom="1.0" left="1.0" right="10.0" top="1.0" />
+                      </padding>
+                    </LineChart>
+                    <AnchorPane fx:id="resPlotAreaPane" layoutX="62.0" layoutY="11.0" AnchorPane.bottomAnchor="37.0" AnchorPane.leftAnchor="62.0" AnchorPane.rightAnchor="19.0" AnchorPane.topAnchor="11.0">
+                      <children>
+                        <Group fx:id="lCsr_res" translateX="0.0">
+                          <children>
+                            <Line fx:id="lCsrBar_res" endY="60.0" startY="0.0" />
+                          </children>
+                        </Group>
+                        <Group fx:id="rCsr_res" translateX="440.0">
+                          <children>
+                            <Line fx:id="rCsrBar_res" endY="60.0" startY="0.0" />
+                          </children>
+                        </Group>
+                      </children>
+                    </AnchorPane>
+                  </children>
+                </AnchorPane>
+              </children>
+            </VBox>
+            <AnchorPane styleClass="tab-toolbar" VBox.vgrow="NEVER">
+              <children>
+                <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="7.078125" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="6.6328125" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                    <Pane />
+                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Start" GridPane.columnIndex="1" />
+                    <NumericSpinner fx:id="lCsrSpinner" editable="true" prefWidth="100.0" GridPane.columnIndex="2" />
+                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="End" GridPane.columnIndex="3" />
+                    <NumericSpinner fx:id="rCsrSpinner" editable="true" prefWidth="100.0" GridPane.columnIndex="4" />
+                    <Pane GridPane.columnIndex="5" />
+                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Photon Count" GridPane.columnIndex="6" />
+                    <TextField fx:id="phtnCntTextField" editable="false" prefWidth="90.0" GridPane.columnIndex="7" />
+                    <Pane GridPane.columnIndex="8" />
+                  </children>
+                </GridPane>
+              </children>
+              <VBox.margin>
+                <Insets />
+              </VBox.margin>
+            </AnchorPane>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+  </children>
+  <fx:script charset="utf-8" source="../js/plotCtrl.js" />
+</AnchorPane>

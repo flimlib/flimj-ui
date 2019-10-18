@@ -1,0 +1,70 @@
+/* dots only */
+.default-color0.chart-series-line {
+    -fx-stroke-width: 0px;
+}
+.default-color0.chart-line-symbol {
+    -fx-background-color: CHART_COLOR_2, white;
+    -fx-background-insets: 0, 1.5;
+    /* -fx-background-radius: 5px; */
+    -fx-padding: 3.5px;
+}
+
+/* lines without dots */
+.default-color1.chart-series-line {
+    -fx-stroke: CHART_COLOR_3;
+}
+.default-color1.chart-line-symbol {
+    -fx-padding: 0px;
+}
+.default-color2.chart-series-line {
+    -fx-stroke: CHART_COLOR_1;
+}
+.default-color2.chart-line-symbol {
+    -fx-padding: 0px;
+}
+
+/* thin SplitPane divider */
+.split-pane *.split-pane-divider {
+    -fx-padding: 0 2 0 2;
+}
+
+.flim-tab-vbox {
+    /* pads botom by -1 (otherwise the tool bar is not well aligned) */
+    -fx-padding: 0 0 -1 0;
+}
+
+.flim-tab-vbox .tab-grid-pane {
+    -fx-hgap: 8;
+    -fx-vgap: 10;
+}
+
+.flim-tab-vbox .tab-pane-list-vbox {
+    -fx-padding: 5 10 5 10;
+    -fx-spacing: 5;
+}
+
+.flim-tab-vbox .tab-toolbar {
+    -fx-min-height: 44;
+    -fx-padding: 5;
+    -fx-border-color: #c8c8c8 transparent #c8c8c8 transparent;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #f5f5f5, #e6e6e6);
+}
+
+/* https://stackoverflow.com/a/30883817 */
+.error-highlight {
+    -fx-focus-color: #d35244;
+    -fx-faint-focus-color: #d3524422;
+
+    -fx-effect: dropshadow(three-pass-box, -fx-focus-color, 14, 0, 0, 0);
+
+    -fx-background-color:
+        -fx-focus-color,
+        -fx-control-inner-background,
+        -fx-faint-focus-color,
+        linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
+    -fx-background-insets: -0.2, 1, -1.4, 3;
+}
+
+.param-fiexd {
+    -fx-effect: dropshadow(three-pass-box, gold, 14, 0, 0, 0);
+}

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?language JavaScript ?>
+<?import java.lang.Integer ?>
+<?import java.lang.String ?>
+<?import javafx.collections.FXCollections ?>
+<?import javafx.geometry.Insets ?>
+<?import javafx.scene.control.Button ?>
+<?import javafx.scene.control.CheckBox ?>
+<?import javafx.scene.control.ChoiceBox ?>
+<?import javafx.scene.control.ScrollPane ?>
+<?import javafx.scene.control.Separator ?>
+<?import javafx.scene.control.SplitPane ?>
+<?import javafx.scene.control.TextField ?>
+<?import javafx.scene.control.TitledPane ?>
+<?import javafx.scene.layout.AnchorPane ?>
+<?import javafx.scene.layout.ColumnConstraints ?>
+<?import javafx.scene.layout.GridPane ?>
+<?import javafx.scene.layout.Pane ?>
+<?import javafx.scene.layout.RowConstraints ?>
+<?import javafx.scene.layout.VBox ?>
+<?import javafx.scene.text.Font ?>
+<?import javafx.scene.text.Text ?>
+<?import javafx.scene.text.TextFlow ?>
+<?import flimlib.NoiseType ?>
+<?import flimlib.flimj.ui.FitProcessor.FitType ?>
+<?import flimlib.flimj.ui.controls.NumericSpinner ?>
+<?import flimlib.flimj.ui.controls.NumericTextField ?>
+
+<AnchorPane stylesheets="@../css/plot.css" SplitPane.resizableWithParent="false" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flimlib.flimj.ui.controller.SettingsCtrl">
+  <children>
+    <TitledPane collapsible="false" text="Settings" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <content>
+        <VBox styleClass="flim-tab-vbox">
+          <children>
+            <VBox styleClass="tab-pane-list-vbox" VBox.vgrow="ALWAYS">
+              <children>
+                <AnchorPane>
+                  <children>
+                    <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" prefWidth="120.0" />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Intensity Thresh." />
+                        <NumericSpinner fx:id="iThreshSpinner" editable="true" GridPane.columnIndex="1" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Kernel Size" GridPane.rowIndex="1" />
+                        <NumericTextField fx:id="chisqTgtTextField" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <TextFlow textAlignment="RIGHT" GridPane.rowIndex="2">
+                          <children>
+                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="χ²">
+                              <font>
+                                <Font name="Cambria" size="12.0" />
+                              </font>
+                            </Text>
+                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" Target" />
+                          </children>
+                        </TextFlow>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Noise Model" GridPane.rowIndex="3" />
+                        <ChoiceBox fx:id="noiseChoiceBox" maxWidth="149.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                          <items>
+                            <FXCollections fx:factory="observableArrayList">
+                              <NoiseType fx:value="NOISE_GAUSSIAN_FIT" />
+                              <NoiseType fx:value="NOISE_POISSON_FIT" />
+                              <NoiseType fx:value="NOISE_POISSON_DATA" />
+                              <NoiseType fx:value="NOISE_MLE" />
+                            </FXCollections>
+                          </items>
+                        </ChoiceBox>
+                        <NumericSpinner fx:id="binSizeSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Algorithm" GridPane.rowIndex="4" />
+                        <ChoiceBox fx:id="algoChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                          <value>
+                            <FitProcessor.FitType fx:value="LMA" />
+                          </value>
+                          <items>
+                            <FXCollections fx:factory="observableArrayList">
+                              <FitProcessor.FitType fx:value="LMA" />
+                              <FitProcessor.FitType fx:value="Global" />
+                              <FitProcessor.FitType fx:value="Bayes" />
+                              <!-- <FitProcessor.FitType fx:value="Phasor" /> -->
+                            </FXCollections>
+                          </items>
+                        </ChoiceBox>
+                      </children>
+                    </GridPane>
+                  </children>
+                  <VBox.margin>
+                    <Insets />
+                  </VBox.margin>
+                </AnchorPane>
+                <AnchorPane>
+                  <children>
+                    <Separator AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  </children>
+                </AnchorPane>
+                <AnchorPane>
+                  <children>
+                    <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints halignment="RIGHT" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Pane />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Instrument Response" GridPane.columnIndex="1" />
+                        <ChoiceBox fx:id="irfChoiceBox" prefWidth="60.0" GridPane.columnIndex="2" GridPane.halignment="LEFT">
+                          <value>
+                            <String fx:value="None" />
+                          </value>
+                          <items>
+                            <FXCollections fx:factory="observableArrayList">
+                              <String fx:value="None" />
+                            </FXCollections>
+                          </items>
+                        </ChoiceBox>
+                        <Pane GridPane.columnIndex="3" />
+                      </children>
+                    </GridPane>
+                  </children>
+                </AnchorPane>
+                <AnchorPane>
+                  <children>
+                    <Separator AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  </children>
+                </AnchorPane>
+                <AnchorPane>
+                  <children>
+                    <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints halignment="RIGHT" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Pane />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="# of Components" GridPane.columnIndex="1" />
+                        <ChoiceBox fx:id="nCompChoiceBox" GridPane.columnIndex="2" GridPane.halignment="LEFT">
+                          <items>
+                            <FXCollections fx:factory="observableArrayList">
+                              <Integer fx:value="1" />
+                              <Integer fx:value="2" />
+                              <Integer fx:value="3" />
+                            </FXCollections>
+                          </items>
+                        </ChoiceBox>
+                        <Pane GridPane.columnIndex="3" />
+                      </children>
+                    </GridPane>
+                  </children>
+                  <VBox.margin>
+                    <Insets />
+                  </VBox.margin>
+                </AnchorPane>
+                <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" style="-fx-background-insets: 0;">
+                  <content>
+                    <GridPane fx:id="paramPane" styleClass="tab-grid-pane">
+                      <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" prefWidth="80.0" />
+                        <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Param" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Value" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Fix" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="z" GridPane.rowIndex="1">
+                          <font>
+                            <Font name="Cambria" size="13.0" />
+                          </font>
+                        </Text>
+                        <CheckBox mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="A" GridPane.rowIndex="2">
+                          <font>
+                            <Font name="Cambria" size="13.0" />
+                          </font>
+                        </Text>
+                        <CheckBox mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="τ" GridPane.rowIndex="3">
+                          <font>
+                            <Font name="Cambria" size="13.0" />
+                          </font>
+                        </Text>
+                        <CheckBox mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                        <NumericTextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <NumericTextField GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <NumericTextField GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                      </children>
+                    </GridPane>
+                  </content>
+                </ScrollPane>
+                <AnchorPane>
+                  <children>
+                    <GridPane alignment="CENTER" styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints minWidth="10.0" />
+                        <ColumnConstraints minWidth="10.0" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Pane />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="χ²" GridPane.columnIndex="1">
+                          <font>
+                            <Font name="Cambria" size="13.0" />
+                          </font>
+                        </Text>
+                        <TextField fx:id="chisqTextField" editable="false" prefWidth="80.0" GridPane.columnIndex="2" />
+                        <Pane GridPane.columnIndex="3" />
+                      </children>
+                    </GridPane>
+                  </children>
+                </AnchorPane>
+              </children>
+            </VBox>
+            <Pane minHeight="0.0" VBox.vgrow="ALWAYS" />
+            <AnchorPane styleClass="tab-toolbar">
+              <VBox.margin>
+                <Insets />
+              </VBox.margin>
+              <children>
+                <GridPane alignment="CENTER" styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints minWidth="10.0" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                    <Pane />
+                    <Button fx:id="fitButton" mnemonicParsing="false" text="Fit Dataset" GridPane.columnIndex="1" />
+                    <Pane GridPane.columnIndex="2" />
+                  </children>
+                </GridPane>
+              </children>
+            </AnchorPane>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+  </children>
+</AnchorPane>

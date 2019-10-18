@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?language JavaScript ?>
+<?import java.lang.String ?>
+<?import javafx.collections.FXCollections ?>
+<?import javafx.geometry.Insets ?>
+<?import javafx.geometry.Rectangle2D ?>
+<?import javafx.scene.Cursor ?>
+<?import javafx.scene.Group ?>
+<?import javafx.scene.control.ChoiceBox ?>
+<?import javafx.scene.control.SplitPane ?>
+<?import javafx.scene.control.TitledPane ?>
+<?import javafx.scene.effect.DropShadow ?>
+<?import javafx.scene.image.ImageView ?>
+<?import javafx.scene.layout.AnchorPane ?>
+<?import javafx.scene.layout.ColumnConstraints ?>
+<?import javafx.scene.layout.GridPane ?>
+<?import javafx.scene.layout.Pane ?>
+<?import javafx.scene.layout.RowConstraints ?>
+<?import javafx.scene.layout.VBox ?>
+<?import javafx.scene.shape.Line ?>
+<?import javafx.scene.shape.Rectangle ?>
+<?import javafx.scene.text.Text ?>
+<?import flimlib.flimj.ui.controls.NumericSpinner ?>
+
+<AnchorPane stylesheets="@../css/plot.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flimlib.flimj.ui.controller.PreviewCtrl">
+  <children>
+    <TitledPane collapsible="false" text="Preview" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <content>
+        <VBox styleClass="flim-tab-vbox">
+          <children>
+            <VBox style="-fx-padding: 0;" styleClass="tab-pane-list-vbox" VBox.vgrow="ALWAYS">
+              <children>
+                <AnchorPane VBox.vgrow="ALWAYS">
+                  <VBox.margin>
+                    <Insets />
+                  </VBox.margin>
+                  <children>
+                    <SplitPane dividerPositions="0.5" style="-fx-background-insets: 0, 0; -fx-padding: -1;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <fx:define>
+                        <DropShadow fx:id="csrEffect" blurType="ONE_PASS_BOX" color="#59d259" spread="0.5" />
+                      </fx:define>
+                      <items>
+                        <AnchorPane>
+                          <children>
+                            <GridPane alignment="CENTER" layoutX="8.899999618530273" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
+                                <ColumnConstraints halignment="CENTER" hgrow="NEVER" />
+                                <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
+                              </columnConstraints>
+                              <rowConstraints>
+                                <RowConstraints minHeight="0.0" vgrow="ALWAYS" />
+                                <RowConstraints valignment="CENTER" vgrow="NEVER" />
+                                <RowConstraints minHeight="0.0" vgrow="ALWAYS" />
+                              </rowConstraints>
+                              <children>
+                                <ImageView fx:id="intensityImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                  <viewport>
+                                    <Rectangle2D />
+                                  </viewport>
+                                </ImageView>
+                                <Pane GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                  <children>
+                                    <Group fx:id="lCsr">
+                                      <children>
+                                        <Rectangle arcHeight="1.0" arcWidth="1.0" fill="TRANSPARENT" height="3.0" layoutX="-1.5" layoutY="-1.5" stroke="WHITE" strokeLineCap="ROUND" width="3.0" />
+                                        <Line endX="-10.0" startX="-1.5" stroke="WHITE" />
+                                        <Line endX="10.0" startX="1.5" stroke="WHITE" />
+                                        <Line endY="10.0" startY="1.5" stroke="WHITE" />
+                                        <Line endY="-10.0" startY="-1.5" stroke="WHITE" />
+                                      </children>
+                                      <effect>
+                                        <fx:reference source="csrEffect" />
+                                      </effect>
+                                    </Group>
+                                  </children>
+                                </Pane>
+                                <Pane fx:id="lClickPane" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                  <cursor>
+                                    <Cursor fx:constant="CROSSHAIR" />
+                                  </cursor>
+                                </Pane>
+                              </children>
+                            </GridPane>
+                          </children>
+                          <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                          </padding>
+                        </AnchorPane>
+                        <AnchorPane>
+                          <children>
+                            <GridPane alignment="CENTER" layoutX="7.300000190734863" layoutY="8.100000381469727" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
+                                <ColumnConstraints halignment="CENTER" hgrow="NEVER" />
+                                <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
+                              </columnConstraints>
+                              <rowConstraints>
+                                <RowConstraints minHeight="0.0" vgrow="ALWAYS" />
+                                <RowConstraints valignment="CENTER" vgrow="NEVER" />
+                                <RowConstraints minHeight="0.0" vgrow="ALWAYS" />
+                              </rowConstraints>
+                              <children>
+                                <ImageView fx:id="resultImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                  <viewport>
+                                    <Rectangle2D />
+                                  </viewport>
+                                </ImageView>
+                                <Pane GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                  <children>
+                                    <Group fx:id="rCsr">
+                                      <children>
+                                        <Rectangle arcHeight="1.0" arcWidth="1.0" fill="TRANSPARENT" height="3.0" layoutX="-1.5" layoutY="-1.5" stroke="WHITE" strokeLineCap="ROUND" width="3.0" />
+                                        <Line endX="-10.0" startX="-1.5" stroke="WHITE" />
+                                        <Line endX="10.0" startX="1.5" stroke="WHITE" />
+                                        <Line endY="10.0" startY="1.5" stroke="WHITE" />
+                                        <Line endY="-10.0" startY="-1.5" stroke="WHITE" />
+                                      </children>
+                                      <effect>
+                                        <fx:reference source="csrEffect" />
+                                      </effect>
+                                    </Group>
+                                  </children>
+                                </Pane>
+                                <Pane fx:id="rClickPane" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                  <cursor>
+                                    <Cursor fx:constant="CROSSHAIR" />
+                                  </cursor>
+                                </Pane>
+                              </children>
+                            </GridPane>
+                          </children>
+                          <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                          </padding>
+                        </AnchorPane>
+                      </items>
+                      <opaqueInsets>
+                        <Insets />
+                      </opaqueInsets>
+                    </SplitPane>
+                  </children>
+                </AnchorPane>
+              </children>
+              <VBox.margin>
+                <Insets />
+              </VBox.margin>
+            </VBox>
+            <AnchorPane styleClass="tab-toolbar" VBox.vgrow="NEVER">
+              <children>
+                <GridPane hgap="8.0" styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" prefWidth="80.0" />
+                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" prefWidth="80.0" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                    <Pane />
+                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="X" GridPane.columnIndex="1" />
+                    <NumericSpinner fx:id="csrXSpinner" editable="true" GridPane.columnIndex="2" />
+                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Y" GridPane.columnIndex="3" />
+                    <NumericSpinner fx:id="csrYSpinner" editable="true" GridPane.columnIndex="4" />
+                    <Pane GridPane.columnIndex="5" />
+                    <Pane GridPane.columnIndex="10" />
+                    <ChoiceBox fx:id="asChoiceBox" prefWidth="150.0" value="Composite Color" GridPane.columnIndex="9">
+                      <items>
+                        <FXCollections fx:factory="observableArrayList">
+                          <String fx:value="Grayscale" />
+                          <String fx:value="Color" />
+                          <String fx:value="Composite Color" />
+                        </FXCollections>
+                      </items>
+                    </ChoiceBox>
+                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Show" GridPane.columnIndex="6" />
+                    <ChoiceBox fx:id="showChoiceBox" prefWidth="50.0" GridPane.columnIndex="7" />
+                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="as" GridPane.columnIndex="8" />
+                  </children>
+                </GridPane>
+              </children>
+              <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+              </padding>
+            </AnchorPane>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+  </children>
+  <fx:script charset="utf-8" source="../js/previewCtrl.js" />
+</AnchorPane>

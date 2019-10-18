@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?language JavaScript ?>
+<?import javafx.geometry.Insets ?>
+<?import javafx.scene.control.Button ?>
+<?import javafx.scene.control.CheckBox ?>
+<?import javafx.scene.control.Separator ?>
+<?import javafx.scene.control.SplitPane ?>
+<?import javafx.scene.control.TitledPane ?>
+<?import javafx.scene.layout.AnchorPane ?>
+<?import javafx.scene.layout.ColumnConstraints ?>
+<?import javafx.scene.layout.GridPane ?>
+<?import javafx.scene.layout.Pane ?>
+<?import javafx.scene.layout.RowConstraints ?>
+<?import javafx.scene.layout.VBox ?>
+<?import javafx.scene.text.Text ?>
+<?import org.controlsfx.control.CheckComboBox ?>
+
+<AnchorPane stylesheets="@../css/plot.css" SplitPane.resizableWithParent="false" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flimlib.flimj.ui.controller.ExportCtrl">
+  <children>
+    <TitledPane collapsible="false" text="Export" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <content>
+        <VBox styleClass="flim-tab-vbox">
+          <children>
+            <VBox styleClass="tab-pane-list-vbox">
+              <children>
+                <AnchorPane>
+                  <children>
+                    <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                        <ColumnConstraints />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Pane />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Images" GridPane.columnIndex="1" />
+                        <CheckComboBox fx:id="exportComboBox" prefWidth="150.0" GridPane.columnIndex="2" />
+                        <Pane GridPane.columnIndex="3" />
+                      </children>
+                    </GridPane>
+                  </children>
+                  <VBox.margin>
+                    <Insets />
+                  </VBox.margin>
+                </AnchorPane>
+                <AnchorPane>
+                  <children>
+                    <Separator prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  </children>
+                </AnchorPane>
+                <AnchorPane>
+                  <children>
+                    <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                        <ColumnConstraints />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Pane />
+                        <CheckBox fx:id="withLUTCheckBox" mnemonicParsing="false" text="With LUT" GridPane.columnIndex="1" />
+                        <!-- <CheckBox mnemonicParsing="false" text="CheckBox" GridPane.columnIndex="2" /> -->
+                        <Pane />
+                      </children>
+                    </GridPane>
+                  </children>
+                </AnchorPane>
+              </children>
+            </VBox>
+            <Pane minHeight="0.0" VBox.vgrow="ALWAYS" />
+            <AnchorPane styleClass="tab-toolbar">
+              <children>
+                <GridPane alignment="CENTER" styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints minWidth="10.0" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                    <Pane />
+                    <Button fx:id="exportButton" mnemonicParsing="false" text="Export" GridPane.columnIndex="1" />
+                    <Pane GridPane.columnIndex="2" />
+                  </children>
+                </GridPane>
+              </children>
+              <VBox.margin>
+                <Insets />
+              </VBox.margin>
+            </AnchorPane>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+  </children>
+</AnchorPane>
