@@ -14,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
@@ -64,6 +65,9 @@ public class SettingsCtrl extends AbstractCtrl {
 	@FXML
 	private Button fitButton;
 
+	@FXML
+	private ProgressIndicator fittingBusyProgressIndicator, binningBusyProgressIndicator;
+
 	/** The list of all parameter name labels */
 	private List<Text> paramLabels;
 
@@ -97,12 +101,20 @@ public class SettingsCtrl extends AbstractCtrl {
 		binSizeSpinner.setMax(255.0);
 		binSizeSpinner.setStepSize(1.0);
 		binSizeSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
+			binSizeSpinner.setDisable(true);
+			binningBusyProgressIndicator.setVisible(true);
 			// binning will freeze the JFX thread and not allow the +/- event to be consumed
 			// which causes indefinite +/- and resulting calls to setBinning()
 			fp.submitRunnable(() -> {
 				fp.setBinning(newVal.intValue());
+				
 				// update of UI components should be run from JFX thread
-				Platform.runLater(() -> requestUpdate());
+				Platform.runLater(() -> {
+					binSizeSpinner.setDisable(false);
+					binningBusyProgressIndicator.setVisible(false);
+
+					requestUpdate();
+				});
 			});
 		});
 
@@ -228,17 +240,28 @@ public class SettingsCtrl extends AbstractCtrl {
 		});
 
 		fitButton.setOnAction(event -> {
+			fitButton.setDisable(true);
+			fittingBusyProgressIndicator.setVisible(true);
+
+			// do heavy lifting on a separate thread
+			fp.submitRunnable(() -> {
 			fp.fitDataset();
+
+				// update UI when done
+				Platform.runLater(() -> {
+					fitButton.setDisable(false);
+					fittingBusyProgressIndicator.setVisible(false);
 
 			// set new options
 			List<String> previewOptions = new ArrayList<>();
-			for (Text label : paramLabels) {
+					for (Text label : paramLabels)
 				previewOptions.add(label.getText());
-			}
 			previewOptions.add("τₘ");
 			fp.setPreviewOptions(previewOptions);
 
 			requestUpdate();
+		});
+			});
 		});
 	}
 
