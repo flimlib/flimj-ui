@@ -5,7 +5,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import org.scijava.ui.DialogPrompt.MessageType;
+import org.scijava.ui.DialogPrompt.OptionType;
+import org.scijava.widget.FileWidget;
+import flimlib.NoiseType;
+import flimlib.flimj.FitParams;
+import flimlib.flimj.FitResults;
+import flimlib.flimj.ui.FitProcessor;
+import flimlib.flimj.ui.FitProcessor.FitType;
+import flimlib.flimj.ui.Utils;
+import flimlib.flimj.ui.controls.NumericSpinner;
+import flimlib.flimj.ui.controls.NumericTextField;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -21,15 +34,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import net.imagej.Dataset;
-import flimlib.NoiseType;
-import flimlib.flimj.FitParams;
-import flimlib.flimj.FitResults;
-import flimlib.flimj.ui.FitProcessor;
-import flimlib.flimj.ui.Utils;
-import flimlib.flimj.ui.FitProcessor.FitType;
-import flimlib.flimj.ui.controls.NumericSpinner;
-import flimlib.flimj.ui.controls.NumericTextField;
-
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.real.FloatType;
 
@@ -77,6 +81,9 @@ public class SettingsCtrl extends AbstractCtrl {
 	/** The list of all parameter fixing state CheckBox */
 	private List<CheckBox> paramFixed;
 
+	/** The list of all input parameter indices */
+	private List<Integer> paramIndices;
+
 	/** The list of dataset present under the current context */
 	private List<Dataset> presentDatasets;
 
@@ -85,6 +92,7 @@ public class SettingsCtrl extends AbstractCtrl {
 		paramLabels = new ArrayList<>();
 		paramValues = new ArrayList<>();
 		paramFixed = new ArrayList<>();
+		paramIndices = new ArrayList<>();
 		// keep only the table header (remove the preview parameters)
 		paramPane.getChildren().removeIf(child -> GridPane.getRowIndex(child) > 0);
 
@@ -276,7 +284,8 @@ public class SettingsCtrl extends AbstractCtrl {
 
 		if (results.param != null) {
 			for (int i = 0; i < results.param.length; i++) {
-				paramValues.get(i).getNumberProperty().set((double) results.param[i]);
+				final int paramIndex = paramIndices.get(i);
+				paramValues.get(paramIndex).getNumberProperty().set((double) results.param[i]);
 				paramFixed.get(i).selectedProperty().set(!params.paramFree[i]);
 			}
 		}
@@ -291,25 +300,86 @@ public class SettingsCtrl extends AbstractCtrl {
 	 */
 	private void setupParams(FitType algo, int nComp) {
 		List<String> paramNames = new ArrayList<>();
+		List<Boolean> paramIsInput = new ArrayList<>();
+		paramIndices.clear();
 		switch (algo) {
 			case LMA:
 			case Global:
 			case Bayes:
 				final String[] subScripts = {"₁", "₂", "₃", "ᵢ"};
+
 				paramNames.add("z");
+				paramIsInput.add(true);
+
 				for (int i = 0; i < nComp; i++) {
 					String subscript = nComp > 1
 							? subScripts[i >= subScripts.length ? subScripts.length - 1 : i]
 							: "";
+
 					paramNames.add("A" + subscript);
+					paramIsInput.add(true);
+
+					if (nComp > 1) {
+						paramNames.add("A" + subscript + " %");
+						paramIsInput.add(false);
+					}
+
 					paramNames.add("τ" + subscript);
+					paramIsInput.add(true);
 				}
 				break;
 
 			default:
 				break;
 		}
-		setParams(paramNames);
+
+		for (int i = 0; i < paramIsInput.size(); i++) {
+			if (paramIsInput.get(i)) {
+				paramIndices.add(i);
+			}
+		}
+
+		setParams(paramNames, paramIsInput);
+
+		switch (algo) {
+			case LMA:
+			case Global:
+			case Bayes:
+				// bind sum(A_i) to A_i's
+				if (nComp > 1) {
+					ObjectProperty<Double> sumA = new SimpleObjectProperty<>();
+					sumA.set(0.0);
+					for (int i = 0; i < nComp; i++) {
+						paramValues.get(paramIndices.get(i * 2 + 1)).getNumberProperty()
+								.addListener((obs, oldVal, newVal) -> {
+									Double newSum = 0.0;
+									for (int j = 0; j < nComp; j++) {
+										int a_iIndex = paramIndices.get(j * 2 + 1);
+										newSum +=
+												paramValues.get(a_iIndex).getNumberProperty().get();
+									}
+									sumA.set(newSum);
+								});
+					}
+					// if sum is updated, update each A_i%
+					sumA.addListener((obs, oldVal, newVal) -> {
+						for (int i = 0; i < nComp; i++) {
+							int a_iIndex = paramIndices.get(i * 2 + 1);
+							Double a_i = paramValues.get(a_iIndex).getNumberProperty().get();
+							NumericTextField aiPercentTF = ((NumericTextField) paramPane
+									.lookup("#display" + (2 * i + 1) + "_display"));
+							Double newPercentage = a_i / newVal * 100;
+							aiPercentTF.getNumberProperty()
+									.set(Double.isFinite(newPercentage) ? newPercentage : 0.0);
+						}
+					});
+				}
+
+				break;
+
+			default:
+				break;
+		}
 	}
 
 	/**
@@ -317,30 +387,34 @@ public class SettingsCtrl extends AbstractCtrl {
 	 * 
 	 * @param paramNames the list of all labels
 	 */
-	private void setParams(List<String> paramNames) {
+	private void setParams(List<String> paramNames, List<Boolean> paramIsInputs) {
 		// trim table
-		paramPane.getChildren().removeIf(child -> GridPane.getRowIndex(child) >= paramNames.size());
+		// paramPane.getChildren().removeIf(child -> GridPane.getRowIndex(child) >=
+		// paramNames.size());
+		paramPane.getChildren().clear();
 		paramLabels.removeIf(element -> element.getParent() != paramPane);
 		paramValues.removeIf(element -> element.getParent() != paramPane);
 		paramFixed.removeIf(element -> element.getParent() != paramPane);
+		int indesShift = 0;
 		// change row labels (add new ones if required)
 		for (int i = 0; i < paramNames.size(); i++) {
-			if (i < paramLabels.size()) {
-				paramLabels.get(i).setText(paramNames.get(i));
-			} else {
-				addParamRow(paramNames.get(i));
-			}
+			final String paramName = paramNames.get(i);
+			final boolean paramIsInput = paramIsInputs.get(i);
+			if (!paramIsInput)
+				indesShift++;
+			addParamRow(paramName, paramIsInput, i - indesShift);
 		}
 	}
 
 	/**
 	 * Create a parameter entry that includes the label, the input TextField and the "Fix" CheckBox.
 	 * 
-	 * @param name the parameter label
+	 * @param name     the parameter label
+	 * @param isInput  true if the parameter can have a "Fix" checkbox and mutable value
+	 * @param paramIdx the index in params.param[] or params.paramFree[]
 	 */
-	private void addParamRow(String name) {
-		final int paramIdx = paramLabels.size();
-		String paramId = "param" + paramIdx;
+	private void addParamRow(String name, boolean isInput, int paramIdx) {
+		String paramId = (isInput ? "param" : "display") + paramIdx;
 
 		// the name label
 		Text paramNameText = new Text(name);
@@ -350,13 +424,18 @@ public class SettingsCtrl extends AbstractCtrl {
 
 		// the input text field
 		NumericTextField paramTF = new NumericTextField();
-		paramTF.setId(paramId + "_input");
-		final ObservableList<String> paramTFSC = paramTF.getStyleClass();
+		paramTF.setId(paramId + (isInput ? "_input" : "_display"));
 		paramValues.add(paramTF);
+		paramTF.setEditable(isInput);
 
-		// "Fix" checkbox, automatically selected on user input to the text filed
+		final int rowIndex = paramLabels.size() + 1;
+
+		if (isInput) {
 		CheckBox paramCB = new CheckBox();
 		paramCB.setId(paramId + "_fixed");
+
+			// "Fix" checkbox, automatically selected on user input to the text filed
+			final ObservableList<String> paramTFSC = paramTF.getStyleClass();
 		paramCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
 			if (paramCB.isSelected()) {
 				if (!paramTFSC.contains("param-fiexd")) {
@@ -386,12 +465,14 @@ public class SettingsCtrl extends AbstractCtrl {
 			FitParams<FloatType> params = getParams();
 			params.param[paramIdx] = newValue.floatValue();
 
-			// update when an already fixed value is changed
+				// update when an already fixed param is changed
 			if (!params.paramFree[paramIdx]) {
 				requestUpdate();
 			}
 		});
 
-		paramPane.addRow(paramIdx + 1, paramNameText, paramTF, paramCB);
+			paramPane.addRow(rowIndex, paramNameText, paramTF, paramCB);
+		} else
+			paramPane.addRow(rowIndex, paramNameText, paramTF);
 	}
 }
