@@ -10,10 +10,10 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.scijava.Context;
-import org.scijava.object.ObjectService;
+import org.scijava.cache.CacheService;
+import org.scijava.script.ScriptModule;
 import org.scijava.script.ScriptService;
 import org.scijava.service.Service;
-import org.scijava.ui.UIService;
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
@@ -144,8 +144,6 @@ public class FitProcessor {
 		}
 		RandomAccessibleInterval<FloatType> img = ops.convert().float32(imp.getImg());
 
-		boolean userCancled = false;
-
 		int channelAxis = -1;
 		if (nD == 4) {
 			final String[] cAxisLabels = {"Channel", "Spectra"};
@@ -160,8 +158,14 @@ public class FitProcessor {
 			if (channelAxis == -1)
 				channelAxis = (int) harvestNumber("Multiple Channel Detected", "Integer",
 						"Select Channel Dimension Index:", 0, nD - 1, 0, "slider");
+			if (Float.isNaN(channelAxis)) {
+				return false;
+			}
 			int channelIndex = (int) harvestNumber("Multiple Channel Detected", "Integer",
 					"Select Channel:", 0, img.dimension(channelAxis) - 1, 0, "slider");
+			if (Float.isNaN(channelIndex)) {
+				return false;
+			}
 			img = Views.hyperSlice(img, channelAxis, channelIndex);
 		}
 		params.transMap = img;
@@ -174,9 +178,13 @@ public class FitProcessor {
 				break;
 			}
 		}
-		if (params.ltAxis == -1)
+		if (params.ltAxis == -1) {
 			params.ltAxis = (int) harvestNumber("Lifetime Axis Not Detected", "Integer",
 					"Select Channel Dimension Index:", 0, nD - 1, 0, "slider");
+			if (Float.isNaN(params.ltAxis)) {
+				return false;
+			}
+		}
 		// in case the channel axis before the lifetime axis is dropped
 		if (channelAxis != -1 && channelAxis < params.ltAxis) {
 			params.ltAxis -= 1;
@@ -190,12 +198,15 @@ public class FitProcessor {
 		// TODO handle other time units
 		params.xInc = (float) lifetimeAxis.calibratedValue(1);
 		if (params.xInc <= 0) {
-			float timeBin = harvestNumber("Time Bin Info Not Detected", "Float",
-					"Input Time Bin (ns):", 0, Float.NaN, 10, "spinner");
+			float timeBin = harvestNumber("Time Base Info Not Detected", "Float",
+					"Input Time Base (ns):", 0, Float.NaN, 10, "spinner");
+			if (Float.isNaN(timeBin)) {
+				return false;
+			}
 			params.xInc = timeBin / imp.dimension(params.ltAxis);
 		}
 
-		return !userCancled;
+		return true;
 	}
 
 	public <T extends RealType<T>> boolean populateParams(Dataset dataset) {
@@ -204,27 +215,40 @@ public class FitProcessor {
 
 	/**
 	 * Harvest user numerical input
-	 * @param title the dialog title
-	 * @param type Integer, Float, etc.
-	 * @param label Descriptive label on the left
-	 * @param min mininmum, Float.NaN ignores this setting
-	 * @param max maxinmum, Float.NaN ignores this setting
+	 * 
+	 * @param title      the dialog title
+	 * @param type       Integer, Float, etc.
+	 * @param label      Descriptive label on the left
+	 * @param min        mininmum, Float.NaN ignores this setting
+	 * @param max        maxinmum, Float.NaN ignores this setting
 	 * @param defaultVal default input value, Float.NaN ignores this setting
-	 * @param style slider | spinner | scroll bar
+	 * @param style      slider | spinner | scroll bar
 	 * @return the harvested value
 	 */
 	private float harvestNumber(String title, String type, String label, float min, float max,
 			float defaultVal, String style) {
+		final String randKey = "FLIMJ-" + Math.random();
+		final String scriptTemplate = "" + //
+		// TODO: menuPath='' should not be necessary once
+		// https://github.com/scijava/scijava-common/pull/365 is resolved
+				"#@script (label='%s', menuPath='')\n" + //
+				"#@ CacheService cacheService\n" + //
+				"#@ %s (label='%s', %s %s %s style='%s') number\n" + //
+				// use this extra cache object to determine cancel/success
+				"cacheService.put('" + randKey + "', true)\n";
 		try {
-			String script =
-				"#@script (label='%s')\n" +
-				"#@ %s (label='%s', %s %s %s style='%s') number";
-			return ((Number) ops.getContext().getService(ScriptService.class)
-					.run(title + ".js", String.format(script,
-							title, type, label, min != Float.NaN ? "min=" + min + "," : "",
+			final String script = String.format(scriptTemplate, title, type, label,
+					min != Float.NaN ? "min=" + min + "," : "",
 							max != Float.NaN ? "max=" + max + "," : "",
-							defaultVal != Float.NaN ? "value=" + defaultVal + ",": "", style), true)
-					.get().getInput("number")).floatValue();
+					defaultVal != Float.NaN ? "value=" + defaultVal + "," : "", style);
+			final ScriptModule module =
+					ctx.getService(ScriptService.class).run(title + ".js", script, true).get();
+			final CacheService cacheSvc = ctx.getService(CacheService.class);
+			if (cacheSvc.get(randKey) != null) {
+				// remove key
+				cacheSvc.put(randKey, null);
+				return ((Number) module.getInput("number")).floatValue();
+			}
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
