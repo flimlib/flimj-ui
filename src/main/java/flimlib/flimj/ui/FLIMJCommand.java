@@ -10,6 +10,7 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import org.scijava.command.Command;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -48,6 +49,8 @@ public class FLIMJCommand implements Command {
 			try {
 				initFX(frame, fxPanel);
 				frame.setVisible(true);
+			} catch (UIException e) {
+				dataset.getContext().getService(LogService.class).info(e.getMessage());
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -66,6 +69,8 @@ public class FLIMJCommand implements Command {
 	 *      doc</a>
 	 */
 	private void initFX(JFrame frame, JFXPanel fxPanel) throws IOException {
+		FitProcessor fp = new FitProcessor(dataset);
+
 		ClassLoader cl = getClass().getClassLoader();
 
 		// set title and icon
@@ -77,12 +82,14 @@ public class FLIMJCommand implements Command {
 		Scene scene = loader.<Scene>load();
 
 		// init controllers
-		FitProcessor fp = new FitProcessor(dataset);
 		MainCtrl mainCtrl = loader.<MainCtrl>getController();
 		mainCtrl.setFitProcessor(fp);
 
-		fp.refreshControllers();
-		fp.updateFit();
+		// in case any operation crashes the main thread
+		fp.submitRunnable(() -> {
+			fp.refreshControllers();
+			fp.updateFit();
+		});
 
 		fxPanel.setScene(scene);
 		// not sure why need extra margins to correctly dispay the whole scene
@@ -108,7 +115,7 @@ public class FLIMJCommand implements Command {
 	private List<Image> getIcons(URL url) {
 		Image img = new ImageIcon(url).getImage();
 		List<Image> imgs = new ArrayList<>();
-		for (int size : new int[] { 16, 20, 32, 40 }) {
+		for (int size : new int[] {16, 20, 32, 40}) {
 			imgs.add(img.getScaledInstance(size, size, Image.SCALE_SMOOTH));
 		}
 		return imgs;

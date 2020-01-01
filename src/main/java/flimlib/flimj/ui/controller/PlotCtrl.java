@@ -143,9 +143,9 @@ public class PlotCtrl extends AbstractCtrl {
 		lCsrSpinner.setStepSize(params.xInc);
 		rCsrSpinner.setStepSize(params.xInc);
 
-		fitStart.set((fp.isPickingRIF() ? getIRFInfo() : params).fitStart);
+		fitStart.set((fp.isPickingIRF() ? getIRFInfo() : params).fitStart);
 		// the interval in the plot is [start, end]
-		fitEnd.set((fp.isPickingRIF() ? getIRFInfo() : params).fitEnd - 1);
+		fitEnd.set((fp.isPickingIRF() ? getIRFInfo() : params).fitEnd - 1);
 
 		Platform.runLater(() -> {
 			FitResults rs = fp.getResults();
@@ -224,7 +224,7 @@ public class PlotCtrl extends AbstractCtrl {
 					lCsrSpinner.setMax(spinner.getNumberProperty().get());
 				}
 
-				if (fp.isPickingRIF()) {
+				if (fp.isPickingIRF()) {
 					adjustPlottedPortion(isLCsr, IRF_IDX, newVal);
 				} else {
 					adjustPlottedPortion(isLCsr, FIT_IDX, newVal);
@@ -274,14 +274,12 @@ public class PlotCtrl extends AbstractCtrl {
 	 */
 	private void updateParam(boolean isLCsr, int newVal) {
 		if (isLCsr)
-			(fp.isPickingRIF() ? getIRFInfo() : getParams()).fitStart = newVal;
+			(fp.isPickingIRF() ? getIRFInfo() : getParams()).fitStart = newVal;
 		else
-			(fp.isPickingRIF() ? getIRFInfo() : getParams()).fitEnd = newVal + 1;
+			(fp.isPickingIRF() ? getIRFInfo() : getParams()).fitEnd = newVal + 1;
 
 		// load irf on bound updates
-		if (fp.isPickingRIF()) {
-			FitParams<FloatType> irf = getIRFInfo();
-			normalizedIRF = Arrays.copyOfRange(irf.trans, irf.fitStart, irf.fitEnd);
+		if (fp.isPickingIRF()) {
 
 			float sum = 0;
 			for (int i = 0; i < normalizedIRF.length; i++)
@@ -306,21 +304,21 @@ public class PlotCtrl extends AbstractCtrl {
 	private void adjustPlottedPortion() {
 		// restore index counters
 		for (int i = 0; i < N_PLOTS; i++) {
-			if (fp.isPickingRIF() ^ i != IRF_IDX)
+			if (fp.isPickingIRF() ^ i != IRF_IDX)
 				cursorIdc[i][BEG_IDX] = cursorIdc[i][END_IDX] = 0;
 		}
 
 		double lCsrPosValue = lCsrPos.get();
 		double rCsrPosValue = rCsrPos.get();
 
-		if (fp.isPickingRIF()) {
+		if (fp.isPickingIRF()) {
 			// zoom in to IRF if too small
 			// fitPlotChart.setAnimated(true);
 			// ((NumberAxis) fitPlotChart.getYAxis()).setAutoRanging(false);
 			// FitParams<FloatType> irf = getIRFInfo();
 			// float max = Float.NEGATIVE_INFINITY;
 			// for (int i = irf.fitStart; i < irf.fitEnd; i++)
-			// 	max = Math.max(irf.trans[i], max);
+			// max = Math.max(irf.trans[i], max);
 			// ((NumberAxis) fitPlotChart.getYAxis()).setUpperBound(max * 1.1);
 			// ((NumberAxis) fitPlotChart.getYAxis()).setLowerBound(0);
 			// fitPlotChart.setAnimated(false);
@@ -474,14 +472,14 @@ public class PlotCtrl extends AbstractCtrl {
 			setData(dataLists[TRN_IDX], i, t, y);
 			setData(dataLists[RES_IDX], i, t, y - yFit[i]);
 			// used for photon count later
-			if (!fp.isPickingRIF()) {
+			if (!fp.isPickingIRF()) {
 				prefixSum[i + 1] = prefixSum[i] + y;
 			}
 		}
 
 		int irfPlotOffset = 0;
 		int irfDataOffset = 0;
-		if (!fp.isPickingRIF()) {
+		if (!fp.isPickingIRF()) {
 			irfPlotOffset = getParams().fitStart;
 			irfDataOffset = getIRFInfo().fitStart;
 		}
@@ -489,7 +487,7 @@ public class PlotCtrl extends AbstractCtrl {
 			// make IRF follow the start cursor
 			setData(dataLists[IRF_IDX], i, (i - irfDataOffset + irfPlotOffset) * xInc, instr[i]);
 			// display IRF intensity when picking
-			if (fp.isPickingRIF()) {
+			if (fp.isPickingIRF()) {
 				prefixSum[i + 1] = prefixSum[i] + instr[i];
 			}
 		}

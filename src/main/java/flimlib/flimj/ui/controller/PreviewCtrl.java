@@ -151,7 +151,7 @@ public class PreviewCtrl extends AbstractCtrl {
 				// save cursor position in normal mode from now
 				savedX = csrXSpinner.getNumberProperty().get().intValue();
 				savedY = csrYSpinner.getNumberProperty().get().intValue();
-				fp.setIsPickingRIF(true);
+				fp.setIsPickingIRF(true);
 
 				FitParams<FloatType> irfInfo = fp.getIRFInfo();
 				fp.getIRFInfo().trans = irfInfo.trans == null
@@ -166,7 +166,7 @@ public class PreviewCtrl extends AbstractCtrl {
 				// save cursor position in IRF mode from now
 				savedX = csrXSpinner.getNumberProperty().get().intValue();
 				savedY = csrYSpinner.getNumberProperty().get().intValue();
-				fp.setIsPickingRIF(false);
+				fp.setIsPickingIRF(false);
 
 				updateCsrPos(prevPreviewX, prevPreviewY);
 			}
@@ -198,8 +198,9 @@ public class PreviewCtrl extends AbstractCtrl {
 		updateCsrPos(csrXSpinner.getNumberProperty().get().intValue(),
 				csrYSpinner.getNumberProperty().get().intValue());
 
-		final int w = (int) results.intensityMap.dimension(0);
-		final int h = (int) results.intensityMap.dimension(1);
+		long[] permutedCoordinates = FitProcessor.swapOutLtAxis(new long[] { 0, 1, 2 }, params.ltAxis);
+		final int w = (int) results.intensityMap.dimension((int) permutedCoordinates[0]);
+		final int h = (int) results.intensityMap.dimension((int) permutedCoordinates[1]);
 		resizeImage(w, h);
 		// results.intensityMap() is 3d
 		loadAnotatedIntensityImage(Views.dropSingletonDimensions(results.intensityMap));

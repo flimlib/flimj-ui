@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import org.scijava.Context;
 import org.scijava.object.ObjectService;
 import org.scijava.script.ScriptService;
+import org.scijava.service.Service;
 import org.scijava.ui.UIService;
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
@@ -54,11 +55,9 @@ public class FitProcessor {
 
 	public static final int PREVIEW_IRF_INTENSITY = -3;
 
+	private final Context ctx;
+
 	private final OpService ops;
-
-	private final UIService uis;
-
-	private final ObjectService obs;
 
 	private final Dataset dataset;
 
@@ -67,7 +66,7 @@ public class FitProcessor {
 	private FitResults results;
 
 	// private Mask roi;
-	private boolean useRoi, isPickingRIF;
+	private boolean useRoi, isPickingIRF;
 
 	private RandomAccessibleInterval<FloatType> origTrans, binnedTrans;
 
@@ -101,10 +100,8 @@ public class FitProcessor {
 
 	public FitProcessor(Dataset dataset) {
 		this.dataset = dataset;
-		final Context context = dataset.getContext();
-		this.ops = context.service(OpService.class);
-		this.uis = context.service(UIService.class);
-		this.obs = context.service(ObjectService.class);
+		this.ctx = dataset.getContext();
+		this.ops = getService(OpService.class);
 		this.params = new FitParams<>();
 		this.irfInfoParams = new FitParams<>();
 		this.results = new FitResults();
@@ -115,11 +112,12 @@ public class FitProcessor {
 		setBinning(0);
 
 		setPreviewPos(0, 0);
-		// updateFit();
 	}
 
 	private void init() {
-		populateParams(this.dataset, this.params);
+		if (!populateParams(this.dataset)) {
+			throw new UIException("FLIMJ initialization aborted by user.");
+		}
 		origTrans = params.transMap;
 
 		// allocate buffers
@@ -127,7 +125,7 @@ public class FitProcessor {
 		params.paramFree = new boolean[0];
 		params.param = new float[0];
 		params.paramMap =
-				ArrayImgs.floats(params.param, permuteAxes(new long[] {1, 1, 0}, params.ltAxis));
+				ArrayImgs.floats(params.param, swapInLtAxis(new long[] {1, 1, 0}, params.ltAxis));
 
 		contextualPreviewOptions = new ArrayList<>();
 		persistentPreviewOptions = new ArrayList<>();
@@ -200,6 +198,10 @@ public class FitProcessor {
 		return !userCancled;
 	}
 
+	public <T extends RealType<T>> boolean populateParams(Dataset dataset) {
+		return populateParams(dataset, this.params);
+	}
+
 	/**
 	 * Harvest user numerical input
 	 * @param title the dialog title
@@ -261,24 +263,10 @@ public class FitProcessor {
 	}
 
 	/**
-	 * @return the Op service
+	 * @return the SciJava service
 	 */
-	public OpService getOps() {
-		return ops;
-	}
-
-	/**
-	 * @return the UI service
-	 */
-	public UIService getUIs() {
-		return uis;
-	}
-
-	/**
-	 * @return the object service
-	 */
-	public ObjectService getObs() {
-		return obs;
+	public <S extends Service> S getService(final Class<S> c) {
+		return ctx.getService(c);
 	}
 
 	public void updateFit() {
@@ -335,12 +323,12 @@ public class FitProcessor {
 		}
 	}
 
-	public void setIsPickingRIF(boolean isPickingRIF) {
-		this.isPickingRIF = isPickingRIF;
+	public void setIsPickingIRF(boolean isPickingIRF) {
+		this.isPickingIRF = isPickingIRF;
 	}
 
-	public boolean isPickingRIF() {
-		return isPickingRIF;
+	public boolean isPickingIRF() {
+		return isPickingIRF;
 	}
 
 	public void updateIRF() {
@@ -365,7 +353,7 @@ public class FitProcessor {
 	}
 
 	public void setPreviewPos(int x, int y) {
-		if (isPickingRIF) {
+		if (isPickingIRF) {
 			// just load the IRF into the .trans array
 			fillTrans(irfInfoParams.transMap, irfInfoParams.trans, x, y, irfInfoParams.ltAxis);
 		} else {
@@ -385,8 +373,8 @@ public class FitProcessor {
 	private static IntervalView<FloatType> fillTrans(RandomAccessibleInterval<FloatType> transMap,
 			float[] transArr, int x, int y, int ltAxis) {
 		IntervalView<FloatType> transView =
-				Views.offsetInterval(transMap, permuteAxes(new long[] {x, y, 0}, ltAxis),
-						permuteAxes(new long[] {1, 1, transArr.length}, ltAxis));
+				Views.offsetInterval(transMap, swapInLtAxis(new long[] {x, y, 0}, ltAxis),
+						swapInLtAxis(new long[] {1, 1, transArr.length}, ltAxis));
 		int i = 0;
 		for (FloatType data : transView) {
 			transArr[i++] = data.get();
@@ -469,11 +457,27 @@ public class FitProcessor {
 	 * @param lifetimeAxis the index of the lifetime axis
 	 * @return the coordinates in ltDimension-at-ltAxis order
 	 */
-	public static long[] permuteAxes(long[] coordinates, int lifetimeAxis) {
+	public static long[] swapInLtAxis(long[] coordinates, int lifetimeAxis) {
 		for (int i = coordinates.length - 1; i > lifetimeAxis; i--) {
 			long tmp = coordinates[i];
 			coordinates[i] = coordinates[i - 1];
 			coordinates[i - 1] = tmp;
+		}
+		return coordinates;
+	}
+
+	/**
+	 * Permute the coordinates from ltDimension-at-ltAxis to ltDimension-last.
+	 * 
+	 * @param coordinates  the coordinates in ltDimension-at-ltAxis order
+	 * @param lifetimeAxis the index of the lifetime axis
+	 * @return the coordinates in ltDimension-last order
+	 */
+	public static long[] swapOutLtAxis(long[] coordinates, int lifetimeAxis) {
+		for (int i = lifetimeAxis; i < coordinates.length - 1; i++) {
+			long tmp = coordinates[i];
+			coordinates[i] = coordinates[i + 1];
+			coordinates[i + 1] = tmp;
 		}
 		return coordinates;
 	}

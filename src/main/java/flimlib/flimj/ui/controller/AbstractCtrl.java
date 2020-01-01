@@ -2,13 +2,14 @@ package flimlib.flimj.ui.controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import org.scijava.object.ObjectService;
 import org.scijava.ui.UIService;
 import javafx.fxml.Initializable;
 import net.imagej.ops.OpService;
 import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
 import flimlib.flimj.ui.FitProcessor;
-
+import io.scif.services.DatasetIOService;
 import net.imglib2.type.numeric.real.FloatType;
 
 /**
@@ -85,7 +86,7 @@ public abstract class AbstractCtrl implements Initializable {
 	 * @return the Op service
 	 */
 	protected OpService getOps() {
-		return fp.getOps();
+		return fp.getService(OpService.class);
 	}
 
 	/**
@@ -94,7 +95,25 @@ public abstract class AbstractCtrl implements Initializable {
 	 * @return the UI service
 	 */
 	protected UIService getUIs() {
-		return fp.getUIs();
+		return fp.getService(UIService.class);
+	}
+
+	/**
+	 * Gets the object service in context.
+	 * 
+	 * @return the object service
+	 */
+	protected ObjectService getObs() {
+		return fp.getService(ObjectService.class);
+	}
+
+	/**
+	 * Gets the dataset service in context.
+	 * 
+	 * @return the dataset service
+	 */
+	protected DatasetIOService getDss() {
+		return fp.getService(DatasetIOService.class);
 	}
 
 	/**

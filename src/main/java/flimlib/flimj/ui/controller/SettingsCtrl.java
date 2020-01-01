@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import org.scijava.object.ObjectService;
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.widget.FileWidget;
@@ -179,7 +180,7 @@ public class SettingsCtrl extends AbstractCtrl {
 			int fillStart = params.paramFree.length;
 			params.param = Arrays.copyOf(params.param, nParam);
 			params.paramMap = ArrayImgs.floats(params.param,
-					FitProcessor.permuteAxes(new long[] {1, 1, nParam}, params.ltAxis));
+					FitProcessor.swapInLtAxis(new long[] {1, 1, nParam}, params.ltAxis));
 			params.paramFree = Arrays.copyOf(params.paramFree, nParam);
 			for (int i = fillStart; i < params.paramFree.length; i++) {
 				// set +Inf for no estimation (RAHelper#loadData)
@@ -200,7 +201,7 @@ public class SettingsCtrl extends AbstractCtrl {
 		// populate available IRF source datasets
 		irfChoiceBox.focusedProperty().addListener((obs, oldVal, newVal) -> {
 			if (newVal) {
-				presentDatasets = fp.getObs().getObjects(Dataset.class);
+				presentDatasets = fp.getService(ObjectService.class).getObjects(Dataset.class);
 				List<String> irfOptions = new ArrayList<>();
 				irfOptions.add("None");
 				presentDatasets.forEach(d -> irfOptions.add(d.getName()));
@@ -241,7 +242,7 @@ public class SettingsCtrl extends AbstractCtrl {
 			} else {
 				irfInfo.transMap = null;
 				// if is currently in picking mode, exit immediately
-				fp.setIsPickingRIF(false);
+				fp.setIsPickingIRF(false);
 			}
 			fp.updateIRF();
 			requestUpdate();
