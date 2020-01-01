@@ -81,8 +81,6 @@ public class PlotCtrl extends AbstractCtrl {
 	/** lookup table for photon count before an index */
 	private float[] prefixSum;
 
-	private Function<Float, Float> func;
-
 	private boolean csrBeingDragged;
 
 	@Override
@@ -108,7 +106,8 @@ public class PlotCtrl extends AbstractCtrl {
 		fitPlotAreaPane.widthProperty().addListener((obs, oldVal, newVal) -> {
 			// == 0 at init
 			if (oldVal.floatValue() != 0) {
-				plotFit(func, getParams().trans, getParams().instr, getParams().xInc);
+				plotFit(getParams().trans, getParams().instr, getResults().residuals,
+						getResults().fitted, getParams().xInc, 0);
 			}
 		});
 
@@ -152,8 +151,8 @@ public class PlotCtrl extends AbstractCtrl {
 			if (rs == null || rs.param == null) {
 				return;
 			}
-			plotFit(t -> fp.getFitFunc().apply(t, rs.param), params.trans, getIRFInfo().trans,
-					params.xInc);
+			int irfLength = params.instr == null ? 0 : params.instr.length;
+			plotFit(params.trans, getIRFInfo().trans, rs.residuals, rs.fitted, params.xInc, irfLength);
 			phtnCntTextField.setText(getphtnCnt());
 		});
 
@@ -400,69 +399,51 @@ public class PlotCtrl extends AbstractCtrl {
 	}
 
 	/**
-	 * Calculate fit w or w/o convolving with IRF.
-	 * 
-	 * @param func    the function
-	 * @param start   x0
-	 * @param step    dx
-	 * @param nPoints number of points evaluated
-	 * @param instr   convolving function (null if no convolution)
-	 * @return the fit
-	 */
-	private static float[] calcFit(Function<Float, Float> func, float start, float step,
-			int nPoints, float[] instr) {
-		float[] fit = new float[nPoints];
-		float x = start;
-		for (int i = 0; i < nPoints; i++, x += step)
-			fit[i] = func.apply(x);
-
-		if (instr != null) {
-			float[] convolvedFit = new float[nPoints];
-			for (int i = 0; i < nPoints; i++)
-				for (int j = 0; j < instr.length && i - j >= 0; j++)
-					convolvedFit[i] += fit[i - j] * instr[j];
-			return convolvedFit;
-		} else
-			return fit;
-	}
-
-	/**
 	 * Plots the fitted function as well as the transient data and residuals.
 	 * 
-	 * @param func  the function to plot
 	 * @param trans the transient series
 	 * @param xInc  the x (time) increment
 	 */
-	private void plotFit(Function<Float, Float> func, float[] trans, float[] instr, float xInc) {
-		final int nPoints = (int) (fitPlotAreaPane.getWidth() * 1f);
+	private void plotFit(float[] trans, float[] instr, float[] residuals, float[] yFit,
+			float xInc, int irfLength) {
+		final int fitStart = getParams().fitStart;
+		final int fitEnd = getParams().fitEnd;
+		final int nPoints = trans.length; // (int) (fitPlotAreaPane.getWidth() * 1f);
 		final float xMax = (trans.length - 1) * xInc;
-		// t = 0 corresponds to fitStart
-		final float tOffset = (float) (xInc * getParams().fitStart);
-		this.func = func;
-		// sanitize
+		final float plotStart = (float) (xInc * fitStart);
+		final float plotEnd = (float) (xInc * fitEnd);
+
 		instr = instr == null ? new float[0] : instr;
-
-		float[] yFit = calcFit(func, -tOffset, xMax / nPoints, nPoints, instr);
-		for (int i = 0; i < nPoints; i++) {
-			float t = xMax * i / nPoints;
-			setData(dataLists[FIT_IDX], i, t, yFit[i]);
-		}
-		dataLists[FIT_IDX].subList(nPoints, dataLists[FIT_IDX].size()).clear();
-
 		// resize
 		prefixSum = trans.length == (trans.length + 1) ? prefixSum : new float[trans.length + 1];
 
-		yFit = calcFit(func, -tOffset, xInc, trans.length, instr);
 		for (int i = 0; i < trans.length; i++) {
-			float y = trans[i];
-			float t = i * xInc;
+			final float t = i * xInc;
+			final float y = trans[i];
 			setData(dataLists[TRN_IDX], i, t, y);
-			setData(dataLists[RES_IDX], i, t, y - yFit[i]);
 			// used for photon count later
 			if (!fp.isPickingIRF()) {
 				prefixSum[i + 1] = prefixSum[i] + y;
 			}
 		}
+
+		final int fitResLength = Math.max(trans.length, yFit.length + fitStart);
+		for (int i = 0; i < fitResLength; i++) {
+			final float t = (i - irfLength) * xInc;
+			final int pointIdx = i - fitStart;
+
+			float y = pointIdx >= 0 && pointIdx < yFit.length ? yFit[pointIdx] : 0;
+			// NaN or Inf hangs the plotting thread
+			y = Float.isFinite(y) ? y : 0;
+			float r = pointIdx >= 0 && pointIdx < residuals.length ? residuals[pointIdx] : 0;
+			r = Float.isFinite(r) ? r : 0;
+
+			setData(dataLists[FIT_IDX], i, t, y);
+			setData(dataLists[RES_IDX], i, t, r);
+		}
+		// remove extra stuff if the array length has shrinked
+		dataLists[FIT_IDX].subList(fitResLength, dataLists[FIT_IDX].size()).clear();
+		dataLists[RES_IDX].subList(fitResLength, dataLists[RES_IDX].size()).clear();
 
 		int irfPlotOffset = 0;
 		int irfDataOffset = 0;
@@ -472,13 +453,15 @@ public class PlotCtrl extends AbstractCtrl {
 		}
 		for (int i = 0; i < instr.length; i++) {
 			// make IRF follow the start cursor
-			setData(dataLists[IRF_IDX], i, (i - irfDataOffset + irfPlotOffset) * xInc, instr[i]);
+			final float t =
+					(i - irfDataOffset + irfPlotOffset + (fp.isPickingIRF() ? 0 : -irfLength))
+							* xInc;
+			setData(dataLists[IRF_IDX], i, t, instr[i]);
 			// display IRF intensity when picking
 			if (fp.isPickingIRF()) {
 				prefixSum[i + 1] = prefixSum[i] + instr[i];
 			}
 		}
-		// remove extra stuff if the array length has shrinked
 		dataLists[IRF_IDX].subList(instr.length, dataLists[IRF_IDX].size()).clear();
 
 		// again, remove doesn't work well with animations
