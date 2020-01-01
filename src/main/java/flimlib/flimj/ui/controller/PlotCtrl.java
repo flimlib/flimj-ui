@@ -79,7 +79,7 @@ public class PlotCtrl extends AbstractCtrl {
 	private int cursorIdc[][];
 
 	/** lookup table for photon count before an index */
-	private float[] prefixSum, normalizedIRF;
+	private float[] prefixSum;
 
 	private Function<Float, Float> func;
 
@@ -279,21 +279,8 @@ public class PlotCtrl extends AbstractCtrl {
 			(fp.isPickingIRF() ? getIRFInfo() : getParams()).fitEnd = newVal + 1;
 
 		// load irf on bound updates
-		if (fp.isPickingIRF()) {
-
-			float sum = 0;
-			for (int i = 0; i < normalizedIRF.length; i++)
-				sum += normalizedIRF[i];
-			// if there is no photons present, use trivial IRF
-			if (sum == 0)
-				normalizedIRF = new float[] {1};
-			else {
-				for (int i = 0; i < normalizedIRF.length; i++)
-					normalizedIRF[i] /= sum;
-			}
-
-			getParams().instr = normalizedIRF;
-		}
+		if (fp.isPickingIRF())
+			fp.updateIRFRange();
 
 		requestUpdate();
 	}
@@ -455,7 +442,7 @@ public class PlotCtrl extends AbstractCtrl {
 		// sanitize
 		instr = instr == null ? new float[0] : instr;
 
-		float[] yFit = calcFit(func, -tOffset, xMax / nPoints, nPoints, normalizedIRF);
+		float[] yFit = calcFit(func, -tOffset, xMax / nPoints, nPoints, instr);
 		for (int i = 0; i < nPoints; i++) {
 			float t = xMax * i / nPoints;
 			setData(dataLists[FIT_IDX], i, t, yFit[i]);
@@ -465,7 +452,7 @@ public class PlotCtrl extends AbstractCtrl {
 		// resize
 		prefixSum = trans.length == (trans.length + 1) ? prefixSum : new float[trans.length + 1];
 
-		yFit = calcFit(func, -tOffset, xInc, trans.length, normalizedIRF);
+		yFit = calcFit(func, -tOffset, xInc, trans.length, instr);
 		for (int i = 0; i < trans.length; i++) {
 			float y = trans[i];
 			float t = i * xInc;

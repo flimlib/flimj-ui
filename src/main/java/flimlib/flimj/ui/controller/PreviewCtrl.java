@@ -153,11 +153,6 @@ public class PreviewCtrl extends AbstractCtrl {
 				savedY = csrYSpinner.getNumberProperty().get().intValue();
 				fp.setIsPickingIRF(true);
 
-				FitParams<FloatType> irfInfo = fp.getIRFInfo();
-				fp.getIRFInfo().trans = irfInfo.trans == null
-						? new float[(int) irfInfo.transMap.dimension(irfInfo.ltAxis)]
-						: irfInfo.trans;
-
 				updateCsrPos(prevIRFX, prevIRFY);
 			} else if ("IRF Intensity".equals(oldVal)) {
 				// restore cursor position in preview (normal) mode from last time

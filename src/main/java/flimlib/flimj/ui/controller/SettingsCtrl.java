@@ -1,11 +1,13 @@
 package flimlib.flimj.ui.controller;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
-import org.scijava.object.ObjectService;
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.widget.FileWidget;
@@ -86,7 +88,7 @@ public class SettingsCtrl extends AbstractCtrl {
 	private List<Integer> paramIndices;
 
 	/** The list of dataset present under the current context */
-	private List<Dataset> presentDatasets;
+	private HashMap<String, FitParams<FloatType>> presentDatasets;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
@@ -94,6 +96,7 @@ public class SettingsCtrl extends AbstractCtrl {
 		paramValues = new ArrayList<>();
 		paramFixed = new ArrayList<>();
 		paramIndices = new ArrayList<>();
+		presentDatasets = new HashMap<>();
 		// keep only the table header (remove the preview parameters)
 		paramPane.getChildren().removeIf(child -> GridPane.getRowIndex(child) > 0);
 
@@ -116,7 +119,7 @@ public class SettingsCtrl extends AbstractCtrl {
 			// which causes indefinite +/- and resulting calls to setBinning()
 			fp.submitRunnable(() -> {
 				fp.setBinning(newVal.intValue());
-				
+
 				// update of UI components should be run from JFX thread
 				Platform.runLater(() -> {
 					binSizeSpinner.setDisable(false);
@@ -198,20 +201,7 @@ public class SettingsCtrl extends AbstractCtrl {
 			requestUpdate();
 		});
 
-		// populate available IRF source datasets
-		irfChoiceBox.focusedProperty().addListener((obs, oldVal, newVal) -> {
-			if (newVal) {
-				presentDatasets = fp.getService(ObjectService.class).getObjects(Dataset.class);
-				List<String> irfOptions = new ArrayList<>();
-				irfOptions.add("None");
-				presentDatasets.forEach(d -> irfOptions.add(d.getName()));
-
-				if (!irfChoiceBox.getItems().equals(irfOptions)) {
-					irfChoiceBox.getItems().setAll(irfOptions);
-					irfChoiceBox.setValue("None");
-				}
-			}
-		});
+		irfChoiceBox.getItems().add("From file");
 		irfChoiceBox.valueProperty().addListener((obs, oldVal, newVal) -> {
 			// this happens when the list items are changed
 			// if no item is now selected, select the previously selected item
@@ -224,27 +214,57 @@ public class SettingsCtrl extends AbstractCtrl {
 				return;
 			}
 
-			// update IRF information and notify fp
-			FitParams<FloatType> irfInfo = fp.getIRFInfo();
-			if (!newVal.equals("None")) {
-				// locate the chosen dataset
-				Dataset chosenDataset = null;
-				for (Dataset dataset : presentDatasets) {
-					if (dataset.getName().equals(newVal)) {
-						chosenDataset = dataset;
-						break;
-					}
+			FitParams<FloatType> chosenIRF;
+			if ("From file".equals(newVal)) {
+				// the name of selected dataset
+				String currentSelection = oldVal;
+				// choose from file
+				File irfFile = getUIs().chooseFile("Choose IRF transient file", null,
+						FileWidget.OPEN_STYLE);
+				if (irfFile != null) {
+					// not cancelled
+					String irfPath = irfFile.getPath();
+					if (getDss().canOpen(irfPath)) {
+						try {
+							Dataset chosenDataset = getDss().open(irfPath);
+							chosenIRF = new FitParams<>();
+							// throw away if canceled by user
+							if (!fp.populateParams(chosenDataset, chosenIRF))
+								chosenIRF = null;
+							else {
+								currentSelection = chosenDataset.getName();
+								// add to options if not present ([0] = "None")
+								if (!presentDatasets.containsKey(currentSelection)) {
+									irfChoiceBox.getItems().add(1, currentSelection);
+								}
+								// remember/update IRF
+								presentDatasets.put(currentSelection, chosenIRF);
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+							getUIs().showDialog(
+									String.format(
+											"Error occurred during opening %s\nSee Console log.",
+											irfPath),
+									"FLIMJ", MessageType.ERROR_MESSAGE,
+									OptionType.OK_CANCEL_OPTION);
+						}
+					} else
+						getUIs().showDialog(
+								String.format("%s cannot be opened as a Dataset.", irfPath),
+								"FLIMJ", MessageType.ERROR_MESSAGE, OptionType.OK_CANCEL_OPTION);
 				}
-				// populate IRF information
-				if (!fp.populateParams(chosenDataset, irfInfo)) {
-					irfChoiceBox.setValue(oldVal);
-				} ;
-			} else {
-				irfInfo.transMap = null;
-				// if is currently in picking mode, exit immediately
-				fp.setIsPickingIRF(false);
-			}
-			fp.updateIRF();
+				// either set to the new, valid dataset or stick to the old one
+				irfChoiceBox.setValue(currentSelection);
+				return;
+			} else if (!"None".equals(newVal)) {
+				// locate the chosen dataset
+				chosenIRF = presentDatasets.get(newVal);
+			} else
+				chosenIRF = null;
+
+			// update IRF information and notify fp
+			fp.setIRF(chosenIRF);
 			requestUpdate();
 		});
 
@@ -254,22 +274,22 @@ public class SettingsCtrl extends AbstractCtrl {
 
 			// do heavy lifting on a separate thread
 			fp.submitRunnable(() -> {
-			fp.fitDataset();
+				fp.fitDataset();
 
 				// update UI when done
 				Platform.runLater(() -> {
 					fitButton.setDisable(false);
 					fittingBusyProgressIndicator.setVisible(false);
 
-			// set new options
-			List<String> previewOptions = new ArrayList<>();
+					// set new options
+					List<String> previewOptions = new ArrayList<>();
 					for (Text label : paramLabels)
-				previewOptions.add(label.getText());
-			previewOptions.add("τₘ");
-			fp.setPreviewOptions(previewOptions);
+						previewOptions.add(label.getText());
+					previewOptions.add("τₘ");
+					fp.setPreviewOptions(previewOptions);
 
-			requestUpdate();
-		});
+					requestUpdate();
+				});
 			});
 		});
 	}
@@ -432,48 +452,54 @@ public class SettingsCtrl extends AbstractCtrl {
 		final int rowIndex = paramLabels.size() + 1;
 
 		if (isInput) {
-		CheckBox paramCB = new CheckBox();
-		paramCB.setId(paramId + "_fixed");
+			CheckBox paramCB = new CheckBox();
+			paramCB.setId(paramId + "_fixed");
 
 			// "Fix" checkbox, automatically selected on user input to the text filed
 			final ObservableList<String> paramTFSC = paramTF.getStyleClass();
-		paramCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-			if (paramCB.isSelected()) {
-				if (!paramTFSC.contains("param-fiexd")) {
-					paramTFSC.add("param-fiexd");
+			paramCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+				if (paramCB.isSelected()) {
+					if (!paramTFSC.contains("param-fiexd")) {
+						paramTFSC.add("param-fiexd");
+					}
+				} else {
+					paramTFSC.remove("param-fiexd");
 				}
-			} else {
-				paramTFSC.remove("param-fiexd");
-			}
-			FitParams<FloatType> params = getParams();
-			params.paramFree[paramIdx] = !newVal;
+				FitParams<FloatType> params = getParams();
+				params.paramFree[paramIdx] = !newVal;
 
-			// if changed to free, re-fit the parameter
-			if (!newVal) {
-				params.param[paramIdx] = Float.POSITIVE_INFINITY;
-			}
-			requestUpdate();
-		});
-		paramFixed.add(paramCB);
+				// if changed to free, re-fit the parameter
+				if (!newVal) {
+					params.param[paramIdx] = Float.POSITIVE_INFINITY;
+				}
+				requestUpdate();
+			});
+			paramFixed.add(paramCB);
 
-		EventHandler<ActionEvent> oldOnAction = paramTF.getOnAction();
-		paramTF.setOnAction(event -> {
-			oldOnAction.handle(event);
-			// on input: set param fixed
-			paramCB.setSelected(true);
-		});
-		paramTF.getNumberProperty().addListener((obs, oldValue, newValue) -> {
-			FitParams<FloatType> params = getParams();
-			params.param[paramIdx] = newValue.floatValue();
+			EventHandler<ActionEvent> oldOnAction = paramTF.getOnAction();
+			paramTF.setOnAction(event -> {
+				oldOnAction.handle(event);
+				// on input: set param fixed
+				paramCB.setSelected(true);
+			});
+			paramTF.getNumberProperty().addListener((obs, oldValue, newValue) -> {
+				FitParams<FloatType> params = getParams();
+				params.param[paramIdx] = newValue.floatValue();
 
 				// update when an already fixed param is changed
-			if (!params.paramFree[paramIdx]) {
-				requestUpdate();
-			}
-		});
+				if (!params.paramFree[paramIdx]) {
+					requestUpdate();
+				}
+			});
 
 			paramPane.addRow(rowIndex, paramNameText, paramTF, paramCB);
 		} else
 			paramPane.addRow(rowIndex, paramNameText, paramTF);
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		presentDatasets = null;
 	}
 }

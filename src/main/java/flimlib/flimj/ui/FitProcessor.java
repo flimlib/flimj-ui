@@ -1,6 +1,7 @@
 package flimlib.flimj.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -49,19 +50,15 @@ public class FitProcessor {
 		/** Phasor */
 	};
 
-	public static final int PREVIEW_INTENSITY = -1;
-
-	public static final int PREVIEW_TAU_M = -2;
-
-	public static final int PREVIEW_IRF_INTENSITY = -3;
-
 	private final Context ctx;
 
 	private final OpService ops;
 
 	private final Dataset dataset;
 
-	private final FitParams<FloatType> params, irfInfoParams;
+	private final FitParams<FloatType> DEFAULT_IRF_INFO;
+
+	private FitParams<FloatType> params, irfInfoParams;
 
 	private FitResults results;
 
@@ -103,7 +100,8 @@ public class FitProcessor {
 		this.ctx = dataset.getContext();
 		this.ops = getService(OpService.class);
 		this.params = new FitParams<>();
-		this.irfInfoParams = new FitParams<>();
+		this.DEFAULT_IRF_INFO = new FitParams<>();
+		this.irfInfoParams = DEFAULT_IRF_INFO;
 		this.results = new FitResults();
 		this.useRoi = true;
 		this.executor = Executors.newFixedThreadPool(1);
@@ -239,7 +237,7 @@ public class FitProcessor {
 		try {
 			final String script = String.format(scriptTemplate, title, type, label,
 					min != Float.NaN ? "min=" + min + "," : "",
-							max != Float.NaN ? "max=" + max + "," : "",
+					max != Float.NaN ? "max=" + max + "," : "",
 					defaultVal != Float.NaN ? "value=" + defaultVal + "," : "", style);
 			final ScriptModule module =
 					ctx.getService(ScriptService.class).run(title + ".js", script, true).get();
@@ -355,17 +353,54 @@ public class FitProcessor {
 		return isPickingIRF;
 	}
 
-	public void updateIRF() {
-		if (irfInfoParams.transMap != null) {
-			ParamEstimator<FloatType> estimator = new ParamEstimator<>(irfInfoParams);
-			estimator.estimateStartEnd();
-			irfIntensity = estimator.getIntensityMap();
-			persistentPreviewOptions.add("IRF Intensity");
+	public void setIRF(FitParams<FloatType> newIRF) {
+		if (newIRF != null) {
+			irfInfoParams = newIRF;
+
+			// allocate room for copying IRF into
+			if (irfInfoParams.trans == null)
+				irfInfoParams.trans =
+						new float[(int) irfInfoParams.transMap.dimension(irfInfoParams.ltAxis)];
+
+			ParamEstimator<FloatType> est = new ParamEstimator<>(irfInfoParams);
+			est.estimateStartEnd();
+			irfIntensity = est.getIntensityMap();
+
+			if (!persistentPreviewOptions.contains("IRF Intensity"))
+				persistentPreviewOptions.add("IRF Intensity");
+
+			updateIRFRange();
 		} else {
-			persistentPreviewOptions.remove("IRF Intensity");
-			irfInfoParams.trans = null;
+			irfInfoParams = this.DEFAULT_IRF_INFO;
 			params.instr = null;
+			persistentPreviewOptions.remove("IRF Intensity");
+			// if is currently in picking mode, exit immediately
+			isPickingIRF = false;
 		}
+	}
+
+	public void updateIRFRange() {
+		// test DEFAULT or unadjusted irf
+		if (irfInfoParams.fitStart == -1 || irfInfoParams.fitEnd == -1)
+			return;
+		params.instr = getNormalizedIRF(irfInfoParams);
+	}
+
+	private float[] getNormalizedIRF(FitParams<FloatType> irf) {
+		float[] normalizedIRF = Arrays.copyOfRange(irf.trans, irf.fitStart, irf.fitEnd);
+
+		float sum = 0;
+		for (int i = 0; i < normalizedIRF.length; i++)
+			sum += normalizedIRF[i];
+		// if there is no photons present, use trivial IRF
+		if (sum == 0)
+			normalizedIRF = new float[] {1};
+		else {
+			for (int i = 0; i < normalizedIRF.length; i++)
+				normalizedIRF[i] /= sum;
+		}
+
+		return normalizedIRF;
 	}
 
 	public BiFunction<Float, float[], Float> getFitFunc() {
