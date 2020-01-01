@@ -438,34 +438,32 @@ public class FitProcessor {
 		contextualPreviewOptions = options;
 	}
 
-	public boolean previewReady() {
-		return dispParams != null || irfIntensity != null;
-	}
-
 	@SuppressWarnings("unchecked")
-	public RandomAccessibleInterval<FloatType> getPreviewImg(int optionIdx) {
+	public RandomAccessibleInterval<FloatType> getPreviewImg(String option) {
 		switch (fitType) {
 			case "MLA":
 			case "Global":
 			case "Bayes":
-				switch (optionIdx) {
-					case PREVIEW_INTENSITY:
+				switch (option) {
+					case "Intensity":
 						return Views.dropSingletonDimensions(getResults().intensityMap);
 
-					case PREVIEW_TAU_M:
+					case "τₘ":
 						Img<FloatType> previewParamMap = results.paramMap;
 						results.paramMap = dispParams;
 						Img<FloatType> tauM = (Img<FloatType>) ops.run(CalcTauMean.class, results);
 						results.paramMap = previewParamMap;
 						return tauM;
 
-					case PREVIEW_IRF_INTENSITY:
+					case "IRF Intensity":
 						return Views.dropSingletonDimensions(irfIntensity);
 
 					default:
+						int optionIdx = contextualPreviewOptions.indexOf(option);
+						if (optionIdx == -1)
+							return getPreviewImg("Intensity");
 						// get the ith param beyond persistent options
-						return Views.hyperSlice(dispParams, params.ltAxis,
-								optionIdx - persistentPreviewOptions.size());
+						return Views.hyperSlice(dispParams, params.ltAxis, optionIdx);
 				}
 
 			default:

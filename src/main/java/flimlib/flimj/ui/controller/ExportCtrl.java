@@ -16,7 +16,7 @@ import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
 import flimlib.flimj.ui.FitProcessor;
 import flimlib.flimj.ui.Utils;
-
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
@@ -54,24 +54,15 @@ public class ExportCtrl extends AbstractCtrl {
 		exportButton.setOnAction(event -> {
 			for (int idx : exportCBCheckModel.getCheckedIndices()) {
 				String option = exportOptions.get(idx);
-				// TODO refactor String->Index matching
-				if (option.equals("τₘ")) {
-					idx = FitProcessor.PREVIEW_TAU_M;
-				} else if (option.equals("Intensity")) {
-					idx = FitProcessor.PREVIEW_INTENSITY;
-				} else if (option.equals("IRF Intensity")) {
-					idx = FitProcessor.PREVIEW_IRF_INTENSITY;
-				}
 
-				fp.fitDataset();
-
-				Img<FloatType> img = getOps().create().img(fp.getPreviewImg(idx));
-				getOps().copy().rai(img, fp.getPreviewImg(idx));
+				RandomAccessibleInterval<FloatType> previewRAI = fp.getPreviewImg(option);
+				Img<FloatType> img = getOps().create().img(previewRAI);
+				getOps().copy().rai(img, previewRAI);
 
 				ImgPlus<FloatType> imgp = new ImgPlus<FloatType>(img);
 				if (withLUTCheckBox.isSelected()) {
 					// set bounds and LUT
-					if (idx == FitProcessor.PREVIEW_INTENSITY || idx == FitProcessor.PREVIEW_IRF_INTENSITY) {
+					if ("Intensity".equals(option) || "IRF Intensity".equals(option)) {
 						imgp.setChannelMinimum(0, 0);
 						imgp.setChannelMaximum(0, getOps().stats().max(img).getRealDouble());
 					} else {

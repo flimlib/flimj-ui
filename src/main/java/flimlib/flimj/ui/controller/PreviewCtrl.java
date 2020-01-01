@@ -206,9 +206,6 @@ public class PreviewCtrl extends AbstractCtrl {
 		loadAnotatedIntensityImage(Views.dropSingletonDimensions(results.intensityMap));
 
 		// enable preview only if a fitted image/IRF intensity is available
-		// if (fp.previewReady()) {
-		// showChoiceBox.setDisable(false);
-		// asChoiceBox.setDisable(false);
 
 		// update options if changed
 		List<String> fpOptions = fp.getPreviewOptions();
@@ -243,24 +240,7 @@ public class PreviewCtrl extends AbstractCtrl {
 		if (showOption == null) {
 			return;
 		}
-		int optionIdx;
-		switch (showOption) {
-			case "τₘ":
-				optionIdx = FitProcessor.PREVIEW_TAU_M;
-				break;
-			case "Intensity":
-				optionIdx = FitProcessor.PREVIEW_INTENSITY;
-				break;
-			case "IRF Intensity":
-				optionIdx = FitProcessor.PREVIEW_IRF_INTENSITY;
-				break;
-			default:
-				// default being intensity
-				int idx = showChoiceBox.getItems().indexOf(showOption);
-				optionIdx = idx < 0 ? FitProcessor.PREVIEW_INTENSITY : idx;
-				break;
-		}
-		loadAnotatedResultsImage(fp.getPreviewImg(optionIdx), colorizeResult, compositeResult);
+		loadAnotatedResultsImage(fp.getPreviewImg(showOption), colorizeResult, compositeResult);
 	}
 
 	/**
