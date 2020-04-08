@@ -326,7 +326,7 @@ public class FitProcessor {
 	public void setAlgo(FitType algo) {
 		switch (algo) {
 			case LMA:
-				fitType = "MLA";
+				fitType = "LMA";
 				fitFunc = MULTI_EXP;
 				nParam = 2 * params.nComp + 1;
 				break;
@@ -475,30 +475,44 @@ public class FitProcessor {
 
 	@SuppressWarnings("unchecked")
 	public RandomAccessibleInterval<FloatType> getPreviewImg(String option) {
+		int optionIdx = -1;
 		switch (fitType) {
-			case "MLA":
+			case "LMA":
 			case "Global":
 			case "Bayes":
-				switch (option) {
-					case "Intensity":
-						return Views.dropSingletonDimensions(getResults().intensityMap);
-
-					case "τₘ":
-						Img<FloatType> previewParamMap = results.paramMap;
-						results.paramMap = dispParams;
-						Img<FloatType> tauM = (Img<FloatType>) ops.run(CalcTauMean.class, results);
-						results.paramMap = previewParamMap;
-						return tauM;
-
-					case "IRF Intensity":
-						return Views.dropSingletonDimensions(irfIntensity);
-
-					default:
-						int optionIdx = contextualPreviewOptions.indexOf(option);
-						if (optionIdx == -1)
-							return getPreviewImg("Intensity");
-						// get the ith param beyond persistent options
-						return Views.hyperSlice(dispParams, params.ltAxis, optionIdx);
+				FitResults rslt = results.copy();
+				rslt.paramMap = dispParams;
+				if (option.equals("Intensity"))
+					return Views.dropSingletonDimensions(rslt.intensityMap);
+				else if (option.equals("IRF Intensity"))
+					return Views.dropSingletonDimensions(irfIntensity);
+				else if (option.contains("%")) {
+					switch (option) {
+						case "A₁ %": optionIdx = 0; break;
+						case "A₂ %": optionIdx = 1; break;
+						case "A₃ %": optionIdx = 2; break;
+						case "Aᵢ %": optionIdx = 3; break;
+					}
+					return (Img<FloatType>) ops.run("flim.calcAPercent", rslt, optionIdx);
+				}
+				else if (option.equals("τₘ")) {
+					Img<FloatType> tauM = (Img<FloatType>) ops.run("flim.calcTauMean", rslt);
+					return tauM;
+				}
+				else {
+					switch (option) {
+						case "z": optionIdx = 0; break;
+						case "A₁": optionIdx = 1; break;
+						case "τ₁": optionIdx = 2; break;
+						case "A₂": optionIdx = 3; break;
+						case "τ₂": optionIdx = 4; break;
+						case "A₃": optionIdx = 5; break;
+						case "τ₃": optionIdx = 6; break;
+						case "Aᵢ": optionIdx = 7; break;
+						case "τᵢ": optionIdx = 8; break;
+					}
+					// get the ith param beyond persistent options
+					return Views.hyperSlice(dispParams, params.ltAxis, optionIdx);
 				}
 
 			default:

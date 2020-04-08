@@ -151,6 +151,24 @@ public class PlotCtrl extends AbstractCtrl {
 			if (rs == null || rs.param == null) {
 				return;
 			}
+
+			// manually calculate fitted curve if not given
+			if (rs.fitted == null || rs.residuals == null) {
+				int nEval = params.trans.length - params.fitStart;
+				rs.fitted = new float[nEval];
+				rs.residuals = new float[nEval];
+
+				for (int i = 0; i < nEval; i++) {
+					float t = i * params.xInc;
+					float f = rs.param[0];
+					for (int j = 1; j < (rs.param.length + 1) / 2; j++) {
+						f += rs.param[j * 2 - 1] * Math.exp(-t / rs.param[j * 2]);
+					}
+					rs.fitted[i] = f;
+					rs.residuals[i] = params.trans[i + params.fitStart] - f;
+				}
+			}
+
 			int irfLength = params.instr == null ? 0 : params.instr.length;
 			plotFit(params.trans, getIRFInfo().trans, rs.residuals, rs.fitted, params.xInc, irfLength);
 			phtnCntTextField.setText(getphtnCnt());
