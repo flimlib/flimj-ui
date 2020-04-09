@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>27.0.1</version>
+		<version>28.0.0</version>
 	</parent>
 
 	<groupId>flimlib</groupId>
@@ -94,8 +94,8 @@
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 
-		<flimlib.version>2.0.0</flimlib.version>
-		<flimj-ops.version>1.0.0</flimj-ops.version>
+		<flimlib.version>2.1.0</flimlib.version>
+		<flimj-ops.version>2.0.0</flimj-ops.version>
 		<controlsfx.version>8.40.15</controlsfx.version>
 	</properties>
 
