@@ -124,6 +124,7 @@ public class FitProcessor {
 		params.param = new float[0];
 		params.paramMap =
 				ArrayImgs.floats(params.param, swapInLtAxis(new long[] {1, 1, 0}, params.ltAxis));
+		params.iThreshPercent = 5;
 
 		contextualPreviewOptions = new ArrayList<>();
 		persistentPreviewOptions = new ArrayList<>();
@@ -178,7 +179,7 @@ public class FitProcessor {
 		}
 		if (params.ltAxis == -1) {
 			params.ltAxis = (int) harvestNumber("Lifetime Axis Not Detected", "Integer",
-					"Select Channel Dimension Index:", 0, nD - 1, 0, "slider");
+					"Select Time Dimension Index:", 0, nD - 1, 0, "slider");
 			if (Float.isNaN(params.ltAxis)) {
 				return false;
 			}
@@ -319,6 +320,10 @@ public class FitProcessor {
 		results.intensityMap = estimator.getIntensityMap();
 
 		estimator.estimateStartEnd();
+		// default 5% threshold percentage should result in a non-trivial threshold
+		// or the user may have set this number
+		if (params.iThresh == 0)
+			estimator.estimateIThreshold();
 
 		setPreviewPos(previewX, previewY);
 	}

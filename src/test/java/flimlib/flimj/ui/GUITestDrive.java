@@ -1,8 +1,5 @@
 package flimlib.flimj.ui;
 
-import java.util.concurrent.Future;
-import org.scijava.cache.CacheService;
-import org.scijava.script.ScriptModule;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 

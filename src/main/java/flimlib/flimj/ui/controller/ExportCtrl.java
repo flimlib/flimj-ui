@@ -75,7 +75,7 @@ public class ExportCtrl extends AbstractCtrl {
 					}
 				}
 
-				getUIs().show(option, imgp);
+				getUIs().show(convertToPlaintext(option), imgp);
 			}
 		});
 
@@ -92,5 +92,16 @@ public class ExportCtrl extends AbstractCtrl {
 		for (String oldItem : checked) {
 			exportCBCheckModel.check(oldItem);
 		}
+	}
+
+	private static String convertToPlaintext(String name) {
+		name = name.replace("τ", "tau");
+		name = name.replace("₁", "_1");
+		name = name.replace("₂", "_2");
+		name = name.replace("₃", "_3");
+		name = name.replace("ₘ", "_m");
+		name = name.replace("ᵢ", "_i");
+		name = name.replace("%", "percent");
+		return name;
 	}
 }

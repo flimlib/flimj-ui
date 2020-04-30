@@ -106,8 +106,11 @@ public class PlotCtrl extends AbstractCtrl {
 		fitPlotAreaPane.widthProperty().addListener((obs, oldVal, newVal) -> {
 			// == 0 at init
 			if (oldVal.floatValue() != 0) {
-				plotFit(getParams().trans, getParams().instr, getResults().residuals,
-						getResults().fitted, getParams().xInc, 0);
+				FitResults rslt = getResults();
+				if (getParams().trans != null &rslt.fitted != null && rslt.residuals != null) {
+					plotFit(getParams().trans, getParams().instr, getResults().residuals,
+							getResults().fitted, getParams().xInc, 0);
+				}
 			}
 		});
 
@@ -428,8 +431,9 @@ public class PlotCtrl extends AbstractCtrl {
 		final int fitEnd = getParams().fitEnd;
 		final int nPoints = trans.length; // (int) (fitPlotAreaPane.getWidth() * 1f);
 		final float xMax = (trans.length - 1) * xInc;
-		final float plotStart = (float) (xInc * fitStart);
-		final float plotEnd = (float) (xInc * fitEnd);
+		int irfPrefixLen = Math.min(irfLength, fitStart);
+		// index in yFit corresponding to t = 0
+		final int zeroTIdx = Math.max(fitStart, irfLength);
 
 		instr = instr == null ? new float[0] : instr;
 		// resize
@@ -437,31 +441,22 @@ public class PlotCtrl extends AbstractCtrl {
 
 		for (int i = 0; i < trans.length; i++) {
 			final float t = i * xInc;
-			final float y = trans[i];
-			setData(dataLists[TRN_IDX], i, t, y);
+			final float data = trans[i];
+			setData(dataLists[TRN_IDX], i, t, data);
 			// used for photon count later
 			if (!fp.isPickingIRF()) {
-				prefixSum[i + 1] = prefixSum[i] + y;
+				prefixSum[i + 1] = prefixSum[i] + data;
 			}
-		}
 
-		final int fitResLength = Math.max(trans.length, yFit.length + fitStart);
-		for (int i = 0; i < fitResLength; i++) {
-			final float t = (i - irfLength) * xInc;
-			final int pointIdx = i - fitStart;
-
-			float y = pointIdx >= 0 && pointIdx < yFit.length ? yFit[pointIdx] : 0;
+			final int idx = i - zeroTIdx;
+			float y = idx >= 0 && idx < yFit.length ? yFit[idx] : 0;
 			// NaN or Inf hangs the plotting thread
 			y = Float.isFinite(y) ? y : 0;
-			float r = pointIdx >= 0 && pointIdx < residuals.length ? residuals[pointIdx] : 0;
+			float r = idx >= 0 && idx < residuals.length ? residuals[idx] : 0;
 			r = Float.isFinite(r) ? r : 0;
-
-			setData(dataLists[FIT_IDX], i, t, y);
-			setData(dataLists[RES_IDX], i, t, r);
+			setData(dataLists[FIT_IDX], i, t - irfLength * xInc, y);
+			setData(dataLists[RES_IDX], i, t - irfLength * xInc, r);
 		}
-		// remove extra stuff if the array length has shrinked
-		dataLists[FIT_IDX].subList(fitResLength, dataLists[FIT_IDX].size()).clear();
-		dataLists[RES_IDX].subList(fitResLength, dataLists[RES_IDX].size()).clear();
 
 		int irfPlotOffset = 0;
 		int irfDataOffset = 0;
