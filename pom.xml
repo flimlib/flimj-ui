@@ -95,7 +95,7 @@
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 
 		<flimlib.version>2.1.0</flimlib.version>
-		<flimj-ops.version>2.0.0</flimj-ops.version>
+		<flimj-ops.version>2.0.2</flimj-ops.version>
 		<controlsfx.version>8.40.15</controlsfx.version>
 		<!-- TEMP: consider remove after scijava:29.0.0 -->
 		<scijava-maven-plugin.version>1.1.0</scijava-maven-plugin.version>
