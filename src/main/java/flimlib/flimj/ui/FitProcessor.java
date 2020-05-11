@@ -452,7 +452,11 @@ public class FitProcessor {
 		previewTransMap = params.transMap;
 		params.transMap = binnedTrans;
 		previewParamMap = params.paramMap;
+		// tirgger RLD
 		params.paramMap = null;
+		for (int i = 0; i < params.param.length; i++) {
+			params.param[i] = Float.POSITIVE_INFINITY;
+		}
 
 		updateFit();
 
@@ -507,7 +511,9 @@ public class FitProcessor {
 				else {
 					switch (option) {
 						case "z": optionIdx = 0; break;
+						case "A":
 						case "A₁": optionIdx = 1; break;
+						case "τ":
 						case "τ₁": optionIdx = 2; break;
 						case "A₂": optionIdx = 3; break;
 						case "τ₂": optionIdx = 4; break;

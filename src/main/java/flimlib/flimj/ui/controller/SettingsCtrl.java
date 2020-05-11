@@ -101,10 +101,15 @@ public class SettingsCtrl extends AbstractCtrl {
 		paramPane.getChildren().removeIf(child -> GridPane.getRowIndex(child) > 0);
 
 		// numerical fields
-		iThreshSpinner.setMin(0.0);
+		// iThreshSpinner.setMin(0.0);
 		iThreshSpinner.setStepSize(1.0);
 		iThreshSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
-			getParams().iThresh = newVal.floatValue();
+			FitParams<FloatType> params = getParams();
+			params.iThresh = newVal.floatValue();
+			// turn off estimate based on percentage
+			// otherwise user's setting iThresh = 0 triggers that
+			params.iThreshPercent = params.iThresh >= 0 ? -1 : 5;
+
 			requestUpdate();
 		});
 
