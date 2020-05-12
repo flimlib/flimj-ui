@@ -30,9 +30,6 @@ public class FLIMJCommand implements Command {
 	/** The title of the application */
 	private static final String TITLE = "FLIMJ";
 
-	/** The path to the layout fxml */
-	private static final String FXML_PATH = "fxml/plugin-layout.fxml";
-
 	/** The path to the logo image */
 	private static final String ICON_PATH = "img/logo.png";
 
@@ -78,7 +75,7 @@ public class FLIMJCommand implements Command {
 		frame.setIconImages(getIcons(cl.getResource(ICON_PATH)));
 
 		// load scene
-		FXMLLoader loader = new FXMLLoader(cl.getResource(FXML_PATH));
+		FXMLLoader loader = MainCtrl.getFXMLLoader("plugin-layout");
 		Scene scene = loader.<Scene>load();
 
 		// init controllers

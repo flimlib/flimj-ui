@@ -4,24 +4,30 @@ import java.net.URL;
 import java.nio.IntBuffer;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
+import javafx.animation.TranslateTransition;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.WritablePixelFormat;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+
 import net.imagej.display.ColorTables;
-import flimlib.flimj.FitParams;
-import flimlib.flimj.FitResults;
-import flimlib.flimj.ui.FitProcessor;
-import flimlib.flimj.ui.Utils;
-import flimlib.flimj.ui.controls.NumericSpinner;
 
 import net.imglib2.IterableInterval;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converters;
@@ -32,6 +38,16 @@ import net.imglib2.interpolation.randomaccess.FloorInterpolatorFactory;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
+
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
+
+import flimlib.flimj.FitParams;
+import flimlib.flimj.FitResults;
+import flimlib.flimj.ui.FitProcessor;
+import flimlib.flimj.ui.UIException;
+import flimlib.flimj.ui.Utils;
+import flimlib.flimj.ui.controls.NumericSpinner;
 
 /**
  * The controller of the "Preview" tab.
@@ -55,6 +71,12 @@ public class PreviewCtrl extends AbstractCtrl {
 
 	/** The current height and width of the image in preview */
 	private int imgW, imgH;
+
+	/** The raw data in display */
+	private RandomAccessibleInterval<FloatType> rawIntensityImage, rawResultImage;
+
+	/** The colorbar pop over controller */
+	private CBPopOverCtrl cbCtrl;
 
 	/** The ScreenImage used to cache the colorized dataset */
 	private ARGBScreenImage intensityScreenImage, resultScreenImage;
@@ -92,6 +114,95 @@ public class PreviewCtrl extends AbstractCtrl {
 	/** Used to save coordinates before switching between IRF selection and normal mode */
 	private int savedX, savedY;
 
+	/** The controller for the colorbar pop over */
+	public static class CBPopOverCtrl extends AbstractCtrl {
+
+		@FXML
+		/** The moving part */
+		private VBox cbValCursor;
+
+		@FXML
+		private ImageView cbImageView;
+
+		@FXML
+		private Label cbMinValLabel, cbMaxValLabel, cbValLabel;
+
+		private PopOver popOver;
+
+		private WritableImage cbImage;
+
+		private int cbWidth;
+
+		private double cbMin, cbMax;
+
+		private boolean visible;
+
+		@Override
+		public void initialize(URL location, ResourceBundle resources) {
+			cbWidth = (int) cbImageView.getFitWidth();
+			cbImage = new WritableImage(cbWidth, 1);
+			cbImageView.setImage(cbImage);
+		}
+
+		public void setPopOver(PopOver popOver) {
+			this.popOver = popOver;
+		}
+
+		/**
+		 * Draw a new cb when it needs update.
+		 * 
+		 * @param converter the new color map
+		 */
+		public void setCB(RealLUTConverter<FloatType> converter) {
+			for (int i = 0; i < cbWidth; i++) {
+				cbImage.getPixelWriter().setArgb(i, 0,
+						converter.getLUT().lookupARGB(0, cbWidth, i));
+			}
+
+			cbMin = converter.getMin();
+			cbMax = converter.getMax();
+			cbMinValLabel.setText(String.format("%.2g", cbMin));
+			cbMaxValLabel.setText(String.format("%.2g", cbMax));
+			cbValLabel.setText("0.0");
+		}
+
+		/**
+		 * Changes text and moves the cursor to indicate the new value.
+		 * 
+		 * @param value the new value
+		 */
+		public void dispValue(double value) {
+			cbValLabel.setText(String.format("%.2g", value));
+			value = Math.min(Math.max(value, cbMin), cbMax);
+			double pos = (value - cbMin) / (cbMax - cbMin + Double.MIN_VALUE);
+			// move to position in 250ms
+			TranslateTransition tt = new TranslateTransition(Duration.millis(250), cbValCursor);
+			tt.toXProperty().set(cbWidth * (pos - 0.5));
+			tt.play();
+		}
+
+		/**
+		 * Pops over a node ({@link PreviewCtrl#lClickPane}/{@link PreviewCtrl#rClickPane})
+		 * 
+		 * @param owner the node to attach the pop over; {@code null} to hide.
+		 */
+		public void setOwner(Node owner) {
+			if (owner != null) {
+				visible = true;
+				popOver.show(owner);
+			} else {
+				visible = false;
+				// delay hide by 100ms
+				// other wise fast swiping between two panes causes hide() to take
+				// effect immediately after show() in the later pane
+				new Timeline(new KeyFrame(Duration.millis(100), ae -> {
+					if (!visible)
+						popOver.hide();
+				})).play();
+			}
+		}
+	}
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		resizeImage((int) IMAGE_MIN_SIZE, (int) IMAGE_MIN_SIZE);
@@ -111,15 +222,57 @@ public class PreviewCtrl extends AbstractCtrl {
 
 		// snaps cursor to pixel center and adjusts preview position
 		EventHandler<MouseEvent> paneClickedHandler = event -> {
-			int pixelX = (int) Math.min(Math.round((event.getX()) / pixelSize - 0.5),
-					(int) (imgW / pixelSize) - 1);
-			int pixelY = (int) Math.min(Math.round((event.getY()) / pixelSize - 0.5),
-					(int) (imgH / pixelSize) - 1);
-			updateCsrPos(pixelX, pixelY);
+			updateCsrPos(getMousePixCoord(event.getX(), imgW),
+					getMousePixCoord(event.getY(), imgH));
 		};
 
 		lClickPane.setOnMouseClicked(paneClickedHandler);
 		rClickPane.setOnMouseClicked(paneClickedHandler);
+
+		// creates cb pop over
+		try {
+			FXMLLoader loader = getFXMLLoader("preview-colorbar");
+			PopOver popOver = new PopOver(loader.<VBox>load());
+			popOver.setArrowLocation(ArrowLocation.TOP_CENTER);
+			cbCtrl = loader.<CBPopOverCtrl>getController();
+			cbCtrl.setPopOver(popOver);
+		} catch (Exception e) {
+			throw new UIException(e);
+		}
+
+		// make cbCtrl display the value under cursor
+		EventHandler<MouseEvent> cbUpdateHandler = event -> {
+			RandomAccessibleInterval<FloatType> image =
+					event.getSource() == lClickPane ? rawIntensityImage : rawResultImage;
+			double dispVal = 0;
+			if (image != null) {
+				int pixelX = getMousePixCoord(event.getX(), imgW);
+				int pixelY = getMousePixCoord(event.getY(), imgH);
+				RandomAccess<FloatType> ra = image.randomAccess();
+				ra.setPosition(new int[] {pixelX, pixelY});
+				dispVal = ra.get().getRealDouble();
+			}
+			cbCtrl.dispValue(dispVal);
+		};
+		// attach cb to the pane and display the corresponding bar
+		EventHandler<MouseEvent> cbShowHandler = event -> {
+			if (event.getSource() == lClickPane) {
+				cbCtrl.setCB(INTENSITY_CONV);
+				cbCtrl.setOwner(lClickPane);
+			} else {
+				cbCtrl.setCB(RESULTS_CNVTR);
+				cbCtrl.setOwner(rClickPane);
+			}
+		};
+		// hide cb
+		EventHandler<MouseEvent> cbHideHandler = event -> cbCtrl.setOwner(null);
+
+		lClickPane.setOnMouseMoved(cbUpdateHandler);
+		rClickPane.setOnMouseMoved(cbUpdateHandler);
+		lClickPane.setOnMouseEntered(cbShowHandler);
+		rClickPane.setOnMouseEntered(cbShowHandler);
+		lClickPane.setOnMouseExited(cbHideHandler);
+		rClickPane.setOnMouseExited(cbHideHandler);
 
 		// both CB are enabled after the first fit is done
 		// showChoiceBox.setDisable(true);
@@ -193,7 +346,8 @@ public class PreviewCtrl extends AbstractCtrl {
 		updateCsrPos(csrXSpinner.getNumberProperty().get().intValue(),
 				csrYSpinner.getNumberProperty().get().intValue());
 
-		long[] permutedCoordinates = FitProcessor.swapOutLtAxis(new long[] { 0, 1, 2 }, params.ltAxis);
+		long[] permutedCoordinates =
+				FitProcessor.swapOutLtAxis(new long[] {0, 1, 2}, params.ltAxis);
 		final int w = (int) results.intensityMap.dimension((int) permutedCoordinates[0]);
 		final int h = (int) results.intensityMap.dimension((int) permutedCoordinates[1]);
 		resizeImage(w, h);
@@ -222,9 +376,22 @@ public class PreviewCtrl extends AbstractCtrl {
 
 	@Override
 	public void destroy() {
+		rawIntensityImage = rawResultImage = null;
 		intensityScreenImage = resultScreenImage = null;
 		intensityImage = resultImage = null;
 		super.destroy();
+	}
+
+	/**
+	 * Converts event coordinate to pixel coordinate in the image
+	 * 
+	 * @param eventCoord x/ycoordinate of the event
+	 * @param imgWH      W/H of the image
+	 * @return coordinate of pixel at which the event occurs
+	 */
+	private int getMousePixCoord(double eventCoord, int imgWH) {
+		return (int) Math.min(Math.round(eventCoord / pixelSize - 0.5),
+				(int) (imgWH / pixelSize) - 1);
 	}
 
 	/**
@@ -244,6 +411,7 @@ public class PreviewCtrl extends AbstractCtrl {
 	 * @param intensity the intensity data
 	 */
 	private void loadAnotatedIntensityImage(RandomAccessibleInterval<FloatType> intensity) {
+		rawIntensityImage = intensity;
 		IterableInterval<FloatType> itr = Views.iterable(intensity);
 		INTENSITY_CONV.setMax(getOps().stats().max(itr).getRealDouble());
 		loadARGBRAI(intensity, intensityScreenImage, INTENSITY_CONV, intensityImage);
@@ -258,6 +426,7 @@ public class PreviewCtrl extends AbstractCtrl {
 	 */
 	private void loadAnotatedResultsImage(RandomAccessibleInterval<FloatType> result, boolean color,
 			boolean composite) {
+		rawResultImage = result;
 		IterableInterval<FloatType> itr = Views.iterable(result);
 		// TODO a more sensible range
 		RESULTS_CNVTR.setMin(getOps().stats().percentile(itr, 10).getRealDouble());

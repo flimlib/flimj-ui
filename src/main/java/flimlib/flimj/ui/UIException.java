@@ -8,5 +8,9 @@ public class UIException extends RuntimeException {
 
 	public UIException(String message) {
         super(message);
+	}
+	
+	public UIException(Exception exception) {
+        super(exception);
     }
 }

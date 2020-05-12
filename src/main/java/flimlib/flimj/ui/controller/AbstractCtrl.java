@@ -1,9 +1,11 @@
 package flimlib.flimj.ui.controller;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import org.scijava.object.ObjectService;
 import org.scijava.ui.UIService;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import net.imagej.ops.OpService;
 import flimlib.flimj.FitParams;
@@ -18,9 +20,16 @@ import net.imglib2.type.numeric.real.FloatType;
  */
 public abstract class AbstractCtrl implements Initializable {
 
+	public static final String FXML_DIR = "fxml/";
+
 	protected FitProcessor fp;
 
 	private boolean blockUpdate;
+
+	public static FXMLLoader getFXMLLoader(String name) throws IOException {
+		ClassLoader cl = AbstractCtrl.class.getClassLoader();
+		return new FXMLLoader(cl.getResource(FXML_DIR + name + ".fxml"));
+	}
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
