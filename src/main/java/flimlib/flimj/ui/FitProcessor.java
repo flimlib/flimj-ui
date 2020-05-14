@@ -20,23 +20,17 @@ import net.imagej.ImgPlus;
 import net.imagej.axis.Axes;
 import net.imagej.axis.CalibratedAxis;
 import net.imagej.ops.OpService;
-import net.imagej.roi.ROIService;
-import flimlib.flimj.DefaultCalc.CalcTauMean;
 import flimlib.flimj.ui.controller.AbstractCtrl;
 import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
 import flimlib.flimj.ParamEstimator;
 import flimlib.flimj.FlimOps;
-
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.roi.Masks;
-import net.imglib2.roi.RealMask;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 /**
@@ -65,7 +59,7 @@ public class FitProcessor {
 	// private Mask roi;
 	private boolean useRoi, isPickingIRF;
 
-	private RandomAccessibleInterval<FloatType> origTrans, binnedTrans;
+	private RandomAccessibleInterval<FloatType> origTrans, binnedTrans, origIntensity;
 
 	private Img<FloatType> dispParams, irfIntensity;
 
@@ -77,7 +71,7 @@ public class FitProcessor {
 
 	private BiFunction<Float, float[], Float> fitFunc;
 
-	private int nParam, previewX, previewY;
+	private int nParam, previewX, previewY, binRadius;
 
 	private AbstractCtrl[] controllers;
 
@@ -105,6 +99,8 @@ public class FitProcessor {
 		this.results = new FitResults();
 		this.useRoi = true;
 		this.executor = Executors.newFixedThreadPool(1);
+		// trigger setBinning() at start
+		this.binRadius = -1;
 		init();
 
 		setBinning(0);
@@ -116,10 +112,12 @@ public class FitProcessor {
 		if (!populateParams(this.dataset)) {
 			throw new UIException("FLIMJ initialization aborted by user.");
 		}
-		origTrans = params.transMap;
+		binnedTrans = origTrans = params.transMap;
 
 		// allocate buffers
 		params.trans = new float[(int) params.transMap.dimension(params.ltAxis)];
+		params.transMap = ArrayImgs.floats(params.trans,
+				swapInLtAxis(new long[] {1, 1, params.trans.length}, params.ltAxis));
 		params.paramFree = new boolean[0];
 		params.param = new float[0];
 		params.paramMap =
@@ -130,6 +128,18 @@ public class FitProcessor {
 		persistentPreviewOptions = new ArrayList<>();
 		// this option is always present
 		persistentPreviewOptions.add("Intensity");
+
+		// calculate intensity and estimate start-end
+		RandomAccessibleInterval<FloatType> tmpTransMap = params.transMap;
+		params.transMap = origTrans;
+		ParamEstimator<FloatType> estimator = new ParamEstimator<>(params);
+		origIntensity = estimator.getIntensityMap();
+		estimator.estimateStartEnd();
+		params.transMap = tmpTransMap;
+		// default 5% threshold percentage should result in a non-trivial threshold
+		// or the user may have set this number
+		if (params.iThresh == 0)
+			estimator.estimateIThreshold();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -299,33 +309,16 @@ public class FitProcessor {
 	}
 
 	public void setBinning(int size) {
-		binnedTrans = origTrans;
-		if (size > 0) {
-			Img<DoubleType> knl = FlimOps.makeSquareKernel(size * 2 + 1);
-			binnedTrans = ops.filter().convolve(origTrans, knl);
-		}
+		if (size != binRadius) {
+			// invalidate cached
+			binnedTrans = null;
+			binRadius = size;
+			results.intensityMap = (Img<FloatType>) (size > 0
+					? ops.filter().convolve(origIntensity, FlimOps.makeSquareKernel(size * 2 + 1))
+					: origIntensity);
 
-		// setBinning() incurs a change in the source image. Roi should be re-set
-		setUseRoi(useRoi);
+			setPreviewPos(previewX, previewY);
 	}
-
-	public void setUseRoi(boolean useRoi) {
-		params.roiMask = useRoi ? getROI() : Masks.allRealMask(0);
-
-		RandomAccessibleInterval<FloatType> previewTransMap = params.transMap;
-		params.transMap = binnedTrans;
-		ParamEstimator<FloatType> estimator = new ParamEstimator<>(params);
-		params.transMap = previewTransMap;
-
-		results.intensityMap = estimator.getIntensityMap();
-
-		estimator.estimateStartEnd();
-		// default 5% threshold percentage should result in a non-trivial threshold
-		// or the user may have set this number
-		if (params.iThresh == 0)
-			estimator.estimateIThreshold();
-
-		setPreviewPos(previewX, previewY);
 	}
 
 	public void setAlgo(FitType algo) {
@@ -419,11 +412,11 @@ public class FitProcessor {
 	public void setPreviewPos(int x, int y) {
 		if (isPickingIRF) {
 			// just load the IRF into the .trans array
-			fillTrans(irfInfoParams.transMap, irfInfoParams.trans, x, y, irfInfoParams.ltAxis);
+			fillTrans(irfInfoParams.transMap, irfInfoParams.trans, x, y, irfInfoParams.ltAxis, 0);
 		} else {
 			previewX = x;
 			previewY = y;
-			params.transMap = fillTrans(binnedTrans, params.trans, x, y, params.ltAxis);
+			fillTrans(origTrans, params.trans, x, y, params.ltAxis, binRadius);
 
 			// clear out estimations
 			for (int i = 0; i < params.param.length; i++) {
@@ -434,19 +427,38 @@ public class FitProcessor {
 		}
 	}
 
-	private static IntervalView<FloatType> fillTrans(RandomAccessibleInterval<FloatType> transMap,
-			float[] transArr, int x, int y, int ltAxis) {
-		IntervalView<FloatType> transView =
-				Views.offsetInterval(transMap, swapInLtAxis(new long[] {x, y, 0}, ltAxis),
-						swapInLtAxis(new long[] {1, 1, transArr.length}, ltAxis));
-		int i = 0;
-		for (FloatType data : transView) {
-			transArr[i++] = data.get();
+	private static void fillTrans(RandomAccessibleInterval<FloatType> transMap, float[] transArr,
+			int x, int y, int ltAxis, int binRadius) {
+		long[] perm = swapOutLtAxis(new long[] {0, 1, 2}, ltAxis);
+
+		RandomAccess<FloatType> ra = Views.extendZero(transMap).randomAccess();
+		int[] coord = new int[3];
+		coord[(int) perm[0]] = x - binRadius;
+		coord[(int) perm[1]] = y - binRadius;
+		ra.setPosition(coord);
+		for (int t = 0; t < transArr.length; t++)
+			transArr[t] = 0;
+		for (int i = 0; i < 2 * binRadius + 1; i++, ra.fwd((int) perm[0])) {
+			// reset y
+			ra.setPosition(coord[(int) perm[1]], (int) perm[1]);
+			for (int j = 0; j < 2 * binRadius + 1; j++, ra.fwd((int) perm[1])) {
+				// reset t
+				ra.setPosition(0, (int) perm[2]);
+				for (int t = 0; t < transArr.length; t++, ra.fwd((int) perm[2]))
+					transArr[t] += ra.get().getRealFloat();
+
+				// System.out.println(String.format("(%d, %d, %d)", ra.getIntPosition(0), ra.getIntPosition(1), ra.getIntPosition(2)));
 		}
-		return transView;
+	}
 	}
 
 	public void fitDataset() {
+		// use cached trans if available
+		if (binnedTrans == null) {
+			binnedTrans = binRadius > 0
+					? ops.filter().convolve(origTrans, FlimOps.makeSquareKernel(binRadius * 2 + 1))
+					: origTrans;
+		}
 		// temporarily save trans and param maps for preview
 		RandomAccessibleInterval<FloatType> previewTransMap, previewParamMap;
 		previewTransMap = params.transMap;
@@ -503,12 +515,10 @@ public class FitProcessor {
 						case "Aᵢ %": optionIdx = 3; break;
 					}
 					return (Img<FloatType>) ops.run("flim.calcAPercent", rslt, optionIdx);
-				}
-				else if (option.equals("τₘ")) {
+				} else if (option.equals("τₘ")) {
 					Img<FloatType> tauM = (Img<FloatType>) ops.run("flim.calcTauMean", rslt);
 					return tauM;
-				}
-				else {
+				} else {
 					switch (option) {
 						case "z": optionIdx = 0; break;
 						case "A":
@@ -573,11 +583,5 @@ public class FitProcessor {
 			controller.destroy();
 		}
 		executor.shutdownNow();
-	}
-
-	private RealMask getROI() {
-		// TODO
-		ROIService roiService = ops.getContext().service(ROIService.class);
-		return Masks.allRealMask(0);
 	}
 }
