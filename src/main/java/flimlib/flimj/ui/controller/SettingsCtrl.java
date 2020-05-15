@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ResourceBundle;
+import java.util.Scanner;
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.widget.FileWidget;
@@ -35,9 +35,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
-import net.imagej.Dataset;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
 
 /**
  * The controller of the "Settings" tab.
@@ -228,15 +228,14 @@ public class SettingsCtrl extends AbstractCtrl {
 				if (irfFile != null) {
 					// not cancelled
 					String irfPath = irfFile.getPath();
-					if (getDss().canOpen(irfPath)) {
+					if (irfPath.endsWith("asc") || getDss().canOpen(irfPath)) {
 						try {
-							Dataset chosenDataset = getDss().open(irfPath);
-							chosenIRF = new FitParams<>();
+							chosenIRF = IRFDatasetFromFile(irfPath);
 							// throw away if canceled by user
-							if (!fp.populateParams(chosenDataset, chosenIRF))
-								chosenIRF = null;
-							else {
-								currentSelection = chosenDataset.getName();
+							if (chosenIRF != null) {
+								// use file name as irf name
+								currentSelection =
+										irfPath.substring(irfPath.lastIndexOf(File.separator) + 1);
 								// add to options if not present ([0] = "None")
 								if (!presentDatasets.containsKey(currentSelection)) {
 									irfChoiceBox.getItems().add(1, currentSelection);
@@ -255,7 +254,9 @@ public class SettingsCtrl extends AbstractCtrl {
 						}
 					} else
 						getUIs().showDialog(
-								String.format("%s cannot be opened as a Dataset.", irfPath),
+								String.format(
+										"%s cannot be opened as a Dataset or an ASCII number list.",
+										irfPath),
 								"FLIMJ", MessageType.ERROR_MESSAGE, OptionType.OK_CANCEL_OPTION);
 				}
 				// either set to the new, valid dataset or stick to the old one
@@ -499,6 +500,42 @@ public class SettingsCtrl extends AbstractCtrl {
 			paramPane.addRow(rowIndex, paramNameText, paramTF, paramCB);
 		} else
 			paramPane.addRow(rowIndex, paramNameText, paramTF);
+	}
+
+	private FitParams<FloatType> IRFDatasetFromFile(String irfPath) throws IOException {
+		FitParams<FloatType> irfParams = new FitParams<>();
+		if (irfPath.endsWith(".asc")) {
+			// read whitespace separated data
+			ArrayList<Float> irfTrans = new ArrayList<>();
+			Scanner sc = new Scanner(new File(irfPath));
+			while (sc.hasNextBigDecimal())
+				irfTrans.add(sc.nextBigDecimal().floatValue());
+			sc.close();
+
+			// get origTrans' size and ltAxis
+			int ltAxis = fp.getParams().ltAxis;
+			long[] transDIm = new long[3];
+			fp.getOrigTrans().dimensions(transDIm);
+
+			float[] irfTransArr = new float[(int) transDIm[ltAxis]];
+			// place the data at the end so that the leading 0's can be used for shifting
+			for (int i = Math.max(irfTransArr.length - irfTrans.size(), 0), j =
+					0; i < irfTransArr.length; i++, j++)
+				irfTransArr[i] = irfTrans.get(j);
+
+			// create a fake image out of a single array along the ltAxis
+			irfParams.transMap = Views.interval(
+					Views.extendBorder(
+							ArrayImgs.floats(irfTransArr, new long[] {1, 1, irfTransArr.length})),
+					new long[] {0, 0, 0},
+					new long[] {transDIm[0] - 1, transDIm[1] - 1, transDIm[2] - 1});
+			irfParams.ltAxis = ltAxis;
+		} else if (getDss().canOpen(irfPath)) {
+			if (!fp.populateParams(getDss().open(irfPath), irfParams))
+				irfParams = null;
+		}
+
+		return irfParams;
 	}
 
 	@Override

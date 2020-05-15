@@ -296,6 +296,13 @@ public class FitProcessor {
 	}
 
 	/**
+	 * @return the original trans data
+	 */
+	public RandomAccessibleInterval<FloatType> getOrigTrans() {
+		return origTrans;
+	}
+
+	/**
 	 * @return the SciJava service
 	 */
 	public <S extends Service> S getService(final Class<S> c) {
@@ -448,8 +455,8 @@ public class FitProcessor {
 					transArr[t] += ra.get().getRealFloat();
 
 				// System.out.println(String.format("(%d, %d, %d)", ra.getIntPosition(0), ra.getIntPosition(1), ra.getIntPosition(2)));
+			}
 		}
-	}
 	}
 
 	public void fitDataset() {
