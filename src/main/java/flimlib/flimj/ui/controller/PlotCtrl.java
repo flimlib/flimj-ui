@@ -79,6 +79,12 @@ public class PlotCtrl extends AbstractCtrl {
 
 	private boolean csrBeingDragged;
 
+	/**
+	 * additive adjustment to [lr]CsrPos values. Used to expand the plotted portion when IRF is
+	 * present
+	 */
+	private double nonIRFCursorAdj[];
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public void initialize() {
@@ -103,7 +109,7 @@ public class PlotCtrl extends AbstractCtrl {
 			// == 0 at init
 			if (oldVal.floatValue() != 0) {
 				FitResults rslt = getResults();
-				if (getParams().trans != null &rslt.fitted != null && rslt.residuals != null) {
+				if (getParams().trans != null & rslt.fitted != null && rslt.residuals != null) {
 					plotFit(getParams().trans, getParams().instr, getResults().residuals,
 							getResults().fitted, getParams().xInc, 0);
 				}
@@ -113,6 +119,7 @@ public class PlotCtrl extends AbstractCtrl {
 		plotSeries = (Series<Number, Number>[]) new Series[N_PLOTS];
 		dataLists = (ArrayList<Data<Number, Number>>[]) new ArrayList[N_PLOTS];
 		cursorIdc = new int[N_PLOTS][2];
+		nonIRFCursorAdj = new double[2];
 
 		// put series into chart
 		fitPlotChart.getData().add(plotSeries[TRN_IDX] = new Series<Number, Number>());
@@ -169,7 +176,8 @@ public class PlotCtrl extends AbstractCtrl {
 			}
 
 			int irfLength = params.instr == null ? 0 : params.instr.length;
-			plotFit(params.trans, getIRFInfo().trans, rs.residuals, rs.fitted, params.xInc, irfLength);
+			plotFit(params.trans, getIRFInfo().trans, rs.residuals, rs.fitted, params.xInc,
+					irfLength);
 			phtnCntTextField.setText(getphtnCnt());
 		});
 
@@ -243,8 +251,9 @@ public class PlotCtrl extends AbstractCtrl {
 				if (fp.isPickingIRF()) {
 					adjustPlottedPortion(isLCsr, IRF_IDX, newVal);
 				} else {
-					adjustPlottedPortion(isLCsr, FIT_IDX, newVal);
-					adjustPlottedPortion(isLCsr, RES_IDX, newVal);
+					double adj = isLCsr ? nonIRFCursorAdj[0] : nonIRFCursorAdj[1];
+					adjustPlottedPortion(isLCsr, FIT_IDX, newVal + adj);
+					adjustPlottedPortion(isLCsr, RES_IDX, newVal + adj);
 				}
 
 				// unblock update
@@ -335,6 +344,8 @@ public class PlotCtrl extends AbstractCtrl {
 			adjustPlottedPortion(true, RES_IDX, -1);
 			adjustPlottedPortion(false, RES_IDX, -1);
 		} else {
+			lCsrPosValue += nonIRFCursorAdj[0];
+			rCsrPosValue += nonIRFCursorAdj[1];
 			// fitPlotChart.setAnimated(true);
 			// ((NumberAxis) fitPlotChart.getYAxis()).setAutoRanging(true);
 			// fitPlotChart.setAnimated(false);
@@ -421,15 +432,15 @@ public class PlotCtrl extends AbstractCtrl {
 	 * @param trans the transient series
 	 * @param xInc  the x (time) increment
 	 */
-	private void plotFit(float[] trans, float[] instr, float[] residuals, float[] yFit,
-			float xInc, int irfLength) {
+	private void plotFit(float[] trans, float[] instr, float[] residuals, float[] yFit, float xInc,
+			int irfLength) {
 		final int fitStart = getParams().fitStart;
 		final int fitEnd = getParams().fitEnd;
 		final int nPoints = trans.length; // (int) (fitPlotAreaPane.getWidth() * 1f);
 		final float xMax = (trans.length - 1) * xInc;
 		int irfPrefixLen = Math.min(irfLength, fitStart);
-		// index in yFit corresponding to t = 0
-		final int zeroTIdx = Math.max(fitStart, irfLength);
+
+		nonIRFCursorAdj[0] = -irfLength * xInc / 2;
 
 		instr = instr == null ? new float[0] : instr;
 		// resize
@@ -444,14 +455,14 @@ public class PlotCtrl extends AbstractCtrl {
 				prefixSum[i + 1] = prefixSum[i] + data;
 			}
 
-			final int idx = i - zeroTIdx;
+			final int idx = i - fitStart + irfPrefixLen;
 			float y = idx >= 0 && idx < yFit.length ? yFit[idx] : 0;
 			// NaN or Inf hangs the plotting thread
 			y = Float.isFinite(y) ? y : 0;
 			float r = idx >= 0 && idx < residuals.length ? residuals[idx] : 0;
 			r = Float.isFinite(r) ? r : 0;
-			setData(dataLists[FIT_IDX], i, t - irfLength * xInc, y);
-			setData(dataLists[RES_IDX], i, t - irfLength * xInc, r);
+			setData(dataLists[FIT_IDX], i, t, y);
+			setData(dataLists[RES_IDX], i, t, r);
 		}
 
 		int irfPlotOffset = 0;
