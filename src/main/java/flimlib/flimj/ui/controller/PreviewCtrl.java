@@ -1,9 +1,7 @@
 package flimlib.flimj.ui.controller;
 
-import java.net.URL;
 import java.nio.IntBuffer;
 import java.util.List;
-import java.util.ResourceBundle;
 
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
@@ -138,7 +136,7 @@ public class PreviewCtrl extends AbstractCtrl {
 		private boolean visible;
 
 		@Override
-		public void initialize(URL location, ResourceBundle resources) {
+		public void initialize() {
 			cbWidth = (int) cbImageView.getFitWidth();
 			cbImage = new WritableImage(cbWidth, 1);
 			cbImageView.setImage(cbImage);
@@ -204,7 +202,7 @@ public class PreviewCtrl extends AbstractCtrl {
 	}
 
 	@Override
-	public void initialize(URL location, ResourceBundle resources) {
+	public void initialize() {
 		resizeImage((int) IMAGE_MIN_SIZE, (int) IMAGE_MIN_SIZE);
 
 		// make two int spinners

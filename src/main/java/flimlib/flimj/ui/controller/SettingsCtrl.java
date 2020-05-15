@@ -2,7 +2,6 @@ package flimlib.flimj.ui.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -91,7 +90,7 @@ public class SettingsCtrl extends AbstractCtrl {
 	private HashMap<String, FitParams<FloatType>> presentDatasets;
 
 	@Override
-	public void initialize(URL location, ResourceBundle resources) {
+	public void initialize() {
 		paramLabels = new ArrayList<>();
 		paramValues = new ArrayList<>();
 		paramFixed = new ArrayList<>();

@@ -1,9 +1,7 @@
 package flimlib.flimj.ui.controller;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.IndexedCheckModel;
 import javafx.collections.ListChangeListener;
@@ -41,7 +39,7 @@ public class ExportCtrl extends AbstractCtrl {
 	private IndexedCheckModel<String> exportCBCheckModel;
 
 	@Override
-	public void initialize(URL location, ResourceBundle resources) {
+	public void initialize() {
 		exportOptions = exportComboBox.getItems();
 		exportCBCheckModel = exportComboBox.getCheckModel();
 

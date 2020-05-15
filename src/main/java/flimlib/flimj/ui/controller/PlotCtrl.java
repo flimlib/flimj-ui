@@ -1,11 +1,7 @@
 package flimlib.flimj.ui.controller;
 
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.ResourceBundle;
-import java.util.function.Function;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -85,7 +81,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void initialize(URL location, ResourceBundle resources) {
+	public void initialize() {
 		// initialize properties with invalid values (corrected by refresh())
 		lCsrPos = new SimpleObjectProperty<>();
 		lCsrPos.set(-1.0);

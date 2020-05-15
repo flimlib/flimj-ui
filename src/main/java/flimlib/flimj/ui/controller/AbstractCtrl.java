@@ -1,8 +1,6 @@
 package flimlib.flimj.ui.controller;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 import org.scijava.object.ObjectService;
 import org.scijava.ui.UIService;
 import javafx.fxml.FXMLLoader;
@@ -18,7 +16,7 @@ import net.imglib2.type.numeric.real.FloatType;
  * The basis for a tab controller that is {@link Initializable} and refreshable by both external
  * control flow and other controllers backed by the same fit processor.
  */
-public abstract class AbstractCtrl implements Initializable {
+public abstract class AbstractCtrl {
 
 	public static final String FXML_DIR = "fxml/";
 
@@ -31,8 +29,7 @@ public abstract class AbstractCtrl implements Initializable {
 		return new FXMLLoader(cl.getResource(FXML_DIR + name + ".fxml"));
 	}
 
-	@Override
-	public void initialize(URL location, ResourceBundle resources) {
+	public void initialize() {
 
 	}
 
