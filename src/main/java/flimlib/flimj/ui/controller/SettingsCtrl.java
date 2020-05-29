@@ -182,6 +182,19 @@ public class SettingsCtrl extends AbstractCtrl {
 			fp.setAlgo(algo);
 			setupParams(algo, nComp);
 
+			// https://github.com/flimlib/flimj-ui/issues/8
+			// https://github.com/flimlib/flimj-ui/issues/9
+			if (algo == FitType.Bayes) {
+				nCompChoiceBox.setValue(1);
+				nCompChoiceBox.setDisable(true);
+				chisqTgtTextField.setDisable(true);
+				noiseChoiceBox.setDisable(true);
+			} else {
+				nCompChoiceBox.setDisable(false);
+				chisqTgtTextField.setDisable(false);
+				noiseChoiceBox.setDisable(false);
+			}
+
 			// resize and initialize the two arrays
 			int nParam = fp.getNParam();
 			int fillStart = params.paramFree.length;
