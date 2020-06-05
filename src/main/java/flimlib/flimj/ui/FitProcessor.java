@@ -1,5 +1,6 @@
 package flimlib.flimj.ui;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,6 +22,7 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.CalibratedAxis;
 import net.imagej.ops.OpService;
 import flimlib.flimj.ui.controller.AbstractCtrl;
+import io.scif.filters.PlaneSeparatorMetadata;
 import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
 import flimlib.flimj.ParamEstimator;
@@ -200,12 +202,30 @@ public class FitProcessor {
 		}
 
 		// time increment
-		CalibratedAxis lifetimeAxis = imp.axis(params.ltAxis);
-		if (lifetimeAxis.unit() == null) {
-			lifetimeAxis.setUnit("ns");
+		String fileName = imp.getSource();
+		String fileExt = fileName.substring(fileName.lastIndexOf(".") + 1);
+		switch (fileExt) {
+			case "ics":
+				PlaneSeparatorMetadata scifioGlobalProperty =
+						(PlaneSeparatorMetadata) imp.getProperties().get("scifio.metadata.global");
+				String[] extVals = ((String) scifioGlobalProperty.getTable().get("history extents"))
+						.split("\\s+");
+				String[] extLbls = ((String) scifioGlobalProperty.getTable().get("history labels"))
+						.split("\\s+");
+				for (int i = 0; i < extLbls.length; i++) {
+					if ("t".equals(extLbls[i])) {
+						params.xInc = new BigDecimal(extVals[i]).floatValue() * 1e9f
+								/ img.dimension(params.ltAxis);
+						break;
 		}
-		// TODO handle other time units
+				}
+				break;
+
+			default:
+				CalibratedAxis lifetimeAxis = imp.axis(params.ltAxis);
 		params.xInc = (float) lifetimeAxis.calibratedValue(1);
+				break;
+		}
 		if (params.xInc <= 0) {
 			float timeBin = harvestNumber("Time Base Info Not Detected", "Float",
 					"Input Time Base (ns):", 0, Float.NaN, 10, "spinner");
@@ -454,7 +474,6 @@ public class FitProcessor {
 				for (int t = 0; t < transArr.length; t++, ra.fwd((int) perm[2]))
 					transArr[t] += ra.get().getRealFloat();
 
-				// System.out.println(String.format("(%d, %d, %d)", ra.getIntPosition(0), ra.getIntPosition(1), ra.getIntPosition(2)));
 			}
 		}
 	}
