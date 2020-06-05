@@ -474,6 +474,7 @@ public class FitProcessor {
 		// tirgger RLD
 		params.paramMap = null;
 		for (int i = 0; i < params.param.length; i++) {
+			if (params.paramFree[i])
 			params.param[i] = Float.POSITIVE_INFINITY;
 		}
 
