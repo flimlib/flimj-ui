@@ -1,5 +1,6 @@
 package flimlib.flimj.ui.controls;
 
+import java.util.HashMap;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -23,9 +24,9 @@ public class NumericSpinner extends Spinner<Double> {
 	 * 
 	 * @param intOnly false if this spinner is allowed to consume doubles.
 	 */
-	public NumericSpinner(boolean intOnly) {
+	public NumericSpinner(boolean intOnly, HashMap<String, Double> kwMap) {
 		super();
-		nh = new NumericHelper(this.getEditor(), this, intOnly);
+		nh = new NumericHelper(this.getEditor(), this, intOnly, kwMap);
 		ObjectProperty<Double> num = nh.getNumberProperty();
 		setValueFactory(new SpinnerValueFactory<Double>() {
 
@@ -41,6 +42,10 @@ public class NumericSpinner extends Spinner<Double> {
 				num.set(Math.min(curVal + steps * stepSize, max));
 			}
 		});
+	}
+
+	public NumericSpinner(boolean intOnly) {
+		this(intOnly, null);
 	}
 
 	/**
@@ -116,5 +121,9 @@ public class NumericSpinner extends Spinner<Double> {
 
 	public ObjectProperty<Boolean> getIsPercentageProperty() {
 		return nh.getIsPercentageProperty();
+	}
+
+	public void setKwMap(HashMap<String, Double> kwMap) {
+		nh.setKwMap(kwMap);
 	}
 }

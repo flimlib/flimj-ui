@@ -31,7 +31,9 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.outofbounds.OutOfBoundsPeriodicFactory;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
@@ -75,6 +77,8 @@ public class FitProcessor {
 
 	private int nParam, previewX, previewY, binRadius;
 
+	private int axisOrder[];
+
 	private AbstractCtrl[] controllers;
 
 	private final ExecutorService executor;
@@ -114,6 +118,9 @@ public class FitProcessor {
 		if (!populateParams(this.dataset)) {
 			throw new UIException("FLIMJ initialization aborted by user.");
 		}
+		long[] perm = swapOutLtAxis(new long[] {0, 1, 2}, params.ltAxis);
+		axisOrder = new int[] {(int) perm[0], (int) perm[1], (int) perm[2]};
+
 		binnedTrans = origTrans = params.transMap;
 
 		// allocate buffers
@@ -336,13 +343,26 @@ public class FitProcessor {
 	}
 
 	public void setBinning(int size) {
+		boolean allMask = false;
+		if (size == -1) {
+			// FIXME: divide by 2 after https://github.com/imagej/imagej-ops/issues/628 is fixed
+			size = (int) Math.max(origIntensity.dimension(axisOrder[0]),
+					origIntensity.dimension(axisOrder[1]));
+			allMask = true;
+		}
 		if (size != binRadius) {
 			// invalidate cached
 			binnedTrans = null;
 			binRadius = size;
-			results.intensityMap = (Img<FloatType>) (size > 0
-					? ops.filter().convolve(origIntensity, FlimOps.makeSquareKernel(size * 2 + 1))
-					: origIntensity);
+			if (size > 0) {
+				System.out.println(allMask);
+				Img<DoubleType> kernel = FlimOps.makeSquareKernel(size * 2 + 1);
+				results.intensityMap = (Img<FloatType>) (allMask
+						? ops.filter().convolve(origIntensity, kernel,
+								new OutOfBoundsPeriodicFactory<>())
+						: ops.filter().convolve(origIntensity, kernel));
+			} else
+				results.intensityMap = (Img<FloatType>) origIntensity;
 
 			setPreviewPos(previewX, previewY);
 	}
@@ -439,11 +459,11 @@ public class FitProcessor {
 	public void setPreviewPos(int x, int y) {
 		if (isPickingIRF) {
 			// just load the IRF into the .trans array
-			fillTrans(irfInfoParams.transMap, irfInfoParams.trans, x, y, irfInfoParams.ltAxis, 0);
+			fillTrans(irfInfoParams.transMap, irfInfoParams.trans, x, y, axisOrder, 0);
 		} else {
 			previewX = x;
 			previewY = y;
-			fillTrans(origTrans, params.trans, x, y, params.ltAxis, binRadius);
+			fillTrans(origTrans, params.trans, x, y, axisOrder, binRadius);
 
 			// clear out estimations
 			for (int i = 0; i < params.param.length; i++) {
@@ -455,23 +475,22 @@ public class FitProcessor {
 	}
 
 	private static void fillTrans(RandomAccessibleInterval<FloatType> transMap, float[] transArr,
-			int x, int y, int ltAxis, int binRadius) {
-		long[] perm = swapOutLtAxis(new long[] {0, 1, 2}, ltAxis);
+			int x, int y, final int[] axisOrder, int binRadius) {
 
 		RandomAccess<FloatType> ra = Views.extendZero(transMap).randomAccess();
 		int[] coord = new int[3];
-		coord[(int) perm[0]] = x - binRadius;
-		coord[(int) perm[1]] = y - binRadius;
+		coord[axisOrder[0]] = x - binRadius;
+		coord[axisOrder[1]] = y - binRadius;
 		ra.setPosition(coord);
 		for (int t = 0; t < transArr.length; t++)
 			transArr[t] = 0;
-		for (int i = 0; i < 2 * binRadius + 1; i++, ra.fwd((int) perm[0])) {
+		for (int i = 0; i < 2 * binRadius + 1; i++, ra.fwd(axisOrder[0])) {
 			// reset y
-			ra.setPosition(coord[(int) perm[1]], (int) perm[1]);
-			for (int j = 0; j < 2 * binRadius + 1; j++, ra.fwd((int) perm[1])) {
+			ra.setPosition(coord[axisOrder[1]], axisOrder[1]);
+			for (int j = 0; j < 2 * binRadius + 1; j++, ra.fwd(axisOrder[1])) {
 				// reset t
-				ra.setPosition(0, (int) perm[2]);
-				for (int t = 0; t < transArr.length; t++, ra.fwd((int) perm[2]))
+				ra.setPosition(0, axisOrder[2]);
+				for (int t = 0; t < transArr.length; t++, ra.fwd(axisOrder[2]))
 					transArr[t] += ra.get().getRealFloat();
 
 			}

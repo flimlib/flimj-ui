@@ -1,5 +1,6 @@
 package flimlib.flimj.ui.controls;
 
+import java.util.HashMap;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.TextField;
 
@@ -20,9 +21,13 @@ public class NumericTextField extends TextField {
 	 * 
 	 * @param intOnly false if this spinner is allowed to consume doubles.
 	 */
-	public NumericTextField(boolean intOnly) {
+	public NumericTextField(boolean intOnly, HashMap<String, Double> kwmMap) {
 		super();
-		nh = new NumericHelper(this, this, intOnly);
+		nh = new NumericHelper(this, this, intOnly, kwmMap);
+	}
+
+	public NumericTextField(boolean intOnly) {
+		this(intOnly, null);
 	}
 
 	/**
@@ -50,5 +55,9 @@ public class NumericTextField extends TextField {
 
 	public ObjectProperty<Boolean> getIsPercentageProperty() {
 		return nh.getIsPercentageProperty();
+	}
+
+	public void setKwMap(HashMap<String, Double> kwMap) {
+		nh.setKwMap(kwMap);
 	}
 }

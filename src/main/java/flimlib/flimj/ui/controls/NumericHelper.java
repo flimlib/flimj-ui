@@ -1,5 +1,6 @@
 package flimlib.flimj.ui.controls;
 
+import java.util.HashMap;
 import org.controlsfx.tools.ValueExtractor;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
@@ -26,6 +27,7 @@ public class NumericHelper {
 	private TextField editor;
 	private Control control;
 	private boolean intOnly;
+	private HashMap<String, Double> kwMap;
 
 	private String lastText;
 
@@ -39,7 +41,9 @@ public class NumericHelper {
 	/**
 	 * Constructs an {@link NumericHelper}.
 	 */
-	public NumericHelper(TextField editor, Control control, boolean intOnly) {
+	public NumericHelper(TextField editor, Control control, boolean intOnly,
+			HashMap<String, Double> kwMap) {
+		this.kwMap = kwMap == null ? new HashMap<>() : kwMap;
 		vs = new ValidationSupport();
 		initValidationSupport();
 
@@ -75,6 +79,12 @@ public class NumericHelper {
 	 */
 	public void setMax(double max) {
 		this.max = max;
+	}
+
+	public void setKwMap(HashMap<String, Double> kwMap) {
+		this.kwMap.clear();
+		for (String keyword : kwMap.keySet())
+			this.kwMap.put(keyword.toUpperCase(), kwMap.get(keyword));
 	}
 
 	/**
@@ -124,8 +134,8 @@ public class NumericHelper {
 		num.addListener((obs, oldVal, newVal) -> setFormatedVal());
 		isPercentage.addListener((obs, oldVal, newVal) -> setFormatedVal());
 
-		vs.registerValidator(control,
-				Validator.<String>createPredicateValidator(s -> Utils.matchesNumber(s), ""));
+		vs.registerValidator(control, Validator.<String>createPredicateValidator(
+				s -> Utils.matchesNumber(s) || this.kwMap.containsKey(s.toUpperCase()), ""));
 	}
 
 	private void initValidationSupport() {
@@ -140,6 +150,7 @@ public class NumericHelper {
 	 */
 	private void update() {
 		String text = editor.getText();
+		boolean isKW = false;
 		if (text == null) {
 			return;
 		}
@@ -148,7 +159,14 @@ public class NumericHelper {
 			return;
 		}
 		try {
-			double newVal = Math.min(Math.max(Utils.parseDec(text), min), max);
+			double newVal;
+			if (kwMap.containsKey(text)) {
+				newVal = kwMap.get(text);
+				isKW = true;
+			} else {
+				newVal = Math.min(Math.max(Utils.parseDec(text), min), max);
+			}
+
 			if (intOnly) {
 				newVal = Math.round(newVal);
 			}
@@ -157,7 +175,10 @@ public class NumericHelper {
 		} catch (RuntimeException e) {
 			throw new RuntimeException(e);
 		} finally {
-			setFormatedVal();
+			if (isKW)
+				editor.setText(text);
+			else
+				setFormatedVal();
 			editor.selectAll();
 		}
 	}

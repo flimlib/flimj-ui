@@ -112,6 +112,9 @@ public class SettingsCtrl extends AbstractCtrl {
 			requestUpdate();
 		});
 
+		HashMap<String, Double> kwMap = new HashMap<>();
+		kwMap.put("FULL", -1.0);
+		binSizeSpinner.setKwMap(kwMap);
 		binSizeSpinner.setIntOnly(true);
 		binSizeSpinner.setMin(0.0);
 		binSizeSpinner.setMax(255.0);
