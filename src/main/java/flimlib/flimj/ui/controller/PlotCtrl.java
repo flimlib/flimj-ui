@@ -435,8 +435,6 @@ public class PlotCtrl extends AbstractCtrl {
 	private void plotFit(float[] trans, float[] instr, float[] residuals, float[] yFit, float xInc,
 			int irfLength) {
 		final int fitStart = getParams().fitStart;
-		final int fitEnd = getParams().fitEnd;
-		final int nPoints = trans.length; // (int) (fitPlotAreaPane.getWidth() * 1f);
 		final float xMax = (trans.length - 1) * xInc;
 		int irfPrefixLen = Math.min(irfLength, fitStart);
 

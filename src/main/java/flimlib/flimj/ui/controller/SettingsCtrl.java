@@ -205,11 +205,8 @@ public class SettingsCtrl extends AbstractCtrl {
 			params.paramMap = ArrayImgs.floats(params.param,
 					FitProcessor.swapInLtAxis(new long[] {1, 1, nParam}, params.ltAxis));
 			params.paramFree = Arrays.copyOf(params.paramFree, nParam);
-			for (int i = fillStart; i < params.paramFree.length; i++) {
-				// set +Inf for no estimation (RAHelper#loadData)
-				params.param[i] = Float.POSITIVE_INFINITY;
+			for (int i = fillStart; i < params.paramFree.length; i++)
 				params.paramFree[i] = true;
-			}
 
 			requestUpdate();
 		};
@@ -488,11 +485,13 @@ public class SettingsCtrl extends AbstractCtrl {
 				}
 				FitParams<FloatType> params = getParams();
 				params.paramFree[paramIdx] = !newVal;
-
-				// if changed to free, re-fit the parameter
-				if (!newVal) {
-					params.param[paramIdx] = Float.POSITIVE_INFINITY;
+				// make sure fixed params don't get inf accidentally
+				if (!params.paramFree[paramIdx]) {
+					NumericTextField paramInput =
+							(NumericTextField) paramPane.lookup("#" + paramId + "_input");
+					params.param[paramIdx] = paramInput.getNumberProperty().get().floatValue();
 				}
+
 				requestUpdate();
 			});
 			paramFixed.add(paramCB);

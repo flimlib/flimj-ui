@@ -60,8 +60,7 @@ public class FitProcessor {
 
 	private FitResults results;
 
-	// private Mask roi;
-	private boolean useRoi, isPickingIRF;
+	private boolean isPickingIRF;
 
 	private RandomAccessibleInterval<FloatType> origTrans, binnedTrans, origIntensity;
 
@@ -78,6 +77,8 @@ public class FitProcessor {
 	private int nParam, previewX, previewY, binRadius;
 
 	private int axisOrder[];
+
+	private float[] globalTrans;
 
 	private AbstractCtrl[] controllers;
 
@@ -103,7 +104,6 @@ public class FitProcessor {
 		this.DEFAULT_IRF_INFO = new FitParams<>();
 		this.irfInfoParams = DEFAULT_IRF_INFO;
 		this.results = new FitResults();
-		this.useRoi = true;
 		this.executor = Executors.newFixedThreadPool(1);
 		// trigger setBinning() at start
 		this.binRadius = -1;
@@ -337,6 +337,35 @@ public class FitProcessor {
 	}
 
 	public void updateFit() {
+		// global estimate of taus
+		float[] globalParams = null;
+		if ("Global".equals(fitType)) {
+			for (int i = 0; i < params.param.length; i++) {
+				// trigger rld for free parameters and taus
+				if (params.paramFree[i] || (i - 1) % 2 == 1) {
+					params.paramFree[i] = true;
+					params.param[i] = Float.POSITIVE_INFINITY;
+				}
+			}
+			float[] pixTrans = Arrays.copyOf(params.trans, params.trans.length);
+			for (int i = 0; i < params.trans.length; i++) {
+				params.trans[i] = globalTrans[i];
+			}
+			globalParams = ((FitResults) ops.run("flim.fitLMA", params)).param;
+			for (int i = 0; i < params.trans.length; i++) {
+				params.trans[i] = pixTrans[i];
+			}
+		}
+
+		// wipe out initial values for free params and fix taus in global mode
+		for (int i = 0; i < params.param.length; i++) {
+			if ("Global".equals(fitType) && (i - 1) % 2 == 1) {
+				params.paramFree[i] = false;
+				params.param[i] = globalParams[i];
+			} else if (params.paramFree[i])
+				params.param[i] = Float.POSITIVE_INFINITY;
+		}
+
 		FitResults fr = (FitResults) ops.run("flim.fit" + fitType, params);
 		fr.intensityMap = this.results.intensityMap;
 		this.results = fr;
@@ -365,7 +394,7 @@ public class FitProcessor {
 				results.intensityMap = (Img<FloatType>) origIntensity;
 
 			setPreviewPos(previewX, previewY);
-	}
+		}
 	}
 
 	public void setAlgo(FitType algo) {
@@ -380,6 +409,13 @@ public class FitProcessor {
 				fitType = "Global";
 				fitFunc = MULTI_EXP;
 				nParam = 2 * params.nComp + 1;
+
+				// one-time loading of binned trans
+				if (globalTrans == null) {
+					globalTrans = new float[params.trans.length];
+					fillTrans(origTrans, globalTrans, 0, 0, axisOrder,
+							(int) origTrans.dimension(0));
+				}
 				break;
 
 			case Bayes:
@@ -464,13 +500,6 @@ public class FitProcessor {
 			previewX = x;
 			previewY = y;
 			fillTrans(origTrans, params.trans, x, y, axisOrder, binRadius);
-
-			// clear out estimations
-			for (int i = 0; i < params.param.length; i++) {
-				if (params.paramFree[i]) {
-					params.param[i] = Float.POSITIVE_INFINITY;
-				}
-			}
 		}
 	}
 
@@ -509,11 +538,13 @@ public class FitProcessor {
 		previewTransMap = params.transMap;
 		params.transMap = binnedTrans;
 		previewParamMap = params.paramMap;
-		// tirgger RLD
+		// tirgger RLD for free parameters and global taus
 		params.paramMap = null;
 		for (int i = 0; i < params.param.length; i++) {
-			if (params.paramFree[i])
-			params.param[i] = Float.POSITIVE_INFINITY;
+			if (params.paramFree[i] || ("Global".equals(fitType) && (i - 1) % 2 == 1)) {
+				params.paramFree[i] = true;
+				params.param[i] = Float.POSITIVE_INFINITY;
+			}
 		}
 
 		updateFit();
