@@ -529,10 +529,10 @@ public class SettingsCtrl extends AbstractCtrl {
 
 			// get origTrans' size and ltAxis
 			int ltAxis = fp.getParams().ltAxis;
-			long[] transDIm = new long[3];
-			fp.getOrigTrans().dimensions(transDIm);
+			long[] transDim = new long[3];
+			fp.getOrigTrans().dimensions(transDim);
 
-			float[] irfTransArr = new float[(int) transDIm[ltAxis]];
+			float[] irfTransArr = new float[(int) transDim[ltAxis]];
 			// place the data at the end so that the leading 0's can be used for shifting
 			for (int i = Math.max(irfTransArr.length - irfTrans.size(), 0), j =
 					0; i < irfTransArr.length; i++, j++)
@@ -543,7 +543,7 @@ public class SettingsCtrl extends AbstractCtrl {
 					Views.extendBorder(
 							ArrayImgs.floats(irfTransArr, new long[] {1, 1, irfTransArr.length})),
 					new long[] {0, 0, 0},
-					new long[] {transDIm[0] - 1, transDIm[1] - 1, transDIm[2] - 1});
+					new long[] {transDim[0] - 1, transDim[1] - 1, transDim[2] - 1});
 			irfParams.ltAxis = ltAxis;
 		} else if (getDss().canOpen(irfPath)) {
 			if (!fp.populateParams(getDss().open(irfPath), irfParams))
