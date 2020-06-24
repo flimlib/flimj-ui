@@ -12,6 +12,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import net.imagej.display.DatasetView;
+
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -23,13 +25,12 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import net.imagej.Dataset;
 
 @Plugin(type = Command.class, menuPath = "Analyze>Lifetime>FLIMJ")
 public class FLIMJCommand implements Command {
 
 	@Parameter
-	private Dataset dataset;
+	private DatasetView datasetView;
 
 	/** The title of the application */
 	private static final String TITLE = "FLIMJ";
@@ -70,7 +71,7 @@ public class FLIMJCommand implements Command {
 	 *      doc</a>
 	 */
 	private void initFX(JFrame frame, JFXPanel fxPanel) throws IOException {
-		FitProcessor fp = new FitProcessor(dataset);
+		FitProcessor fp = new FitProcessor(datasetView.getData());
 
 		ClassLoader cl = getClass().getClassLoader();
 
@@ -103,7 +104,7 @@ public class FLIMJCommand implements Command {
 				// TODO there is still a lot of memory leaks caused by listeners,
 				// remove them from each controller
 				fp.destroy();
-				dataset = null;
+				datasetView = null;
 			}
 		});
 	}
