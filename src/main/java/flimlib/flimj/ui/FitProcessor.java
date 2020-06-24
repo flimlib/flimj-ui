@@ -331,7 +331,7 @@ public class FitProcessor {
 	 * @return the SciJava service
 	 */
 	public <S extends Service> S getService(final Class<S> c) {
-		return ctx.getService(c);
+		return ctx.service(c);
 	}
 
 	public void updateFit() {
