@@ -7,12 +7,23 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+
+import net.imagej.Dataset;
+import net.imglib2.Localizable;
+import net.imglib2.Point;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Intervals;
+import net.imglib2.view.Views;
+
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.widget.FileWidget;
+
 import flimlib.NoiseType;
 import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
+import flimlib.flimj.ui.FitParamsPrompter;
 import flimlib.flimj.ui.FitProcessor;
 import flimlib.flimj.ui.FitProcessor.FitType;
 import flimlib.flimj.ui.Utils;
@@ -35,9 +46,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
-import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.view.Views;
 
 /**
  * The controller of the "Settings" tab.
@@ -546,8 +554,9 @@ public class SettingsCtrl extends AbstractCtrl {
 					new long[] {transDim[0] - 1, transDim[1] - 1, transDim[2] - 1});
 			irfParams.ltAxis = ltAxis;
 		} else if (getDss().canOpen(irfPath)) {
-			if (!fp.populateParams(getDss().open(irfPath), irfParams))
-				irfParams = null;
+			final Dataset dataset = getDss().open(irfPath);
+			final Localizable pos = new Point(Intervals.minAsLongArray(dataset));
+			FitParamsPrompter.populate(irfParams, dataset, pos);
 		}
 
 		return irfParams;

@@ -13,6 +13,7 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import net.imagej.display.DatasetView;
+import net.imglib2.type.numeric.real.FloatType;
 
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
@@ -20,6 +21,7 @@ import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import flimlib.flimj.FitParams;
 import flimlib.flimj.ui.controller.AbstractCtrl;
 import flimlib.flimj.ui.controller.MainCtrl;
 import javafx.application.Platform;
@@ -76,8 +78,6 @@ public class FLIMJCommand implements Command {
 	 *      doc</a>
 	 */
 	private void initFX(JFrame frame, JFXPanel fxPanel) throws IOException {
-		FitProcessor fp = new FitProcessor(datasetView.getData());
-
 		ClassLoader cl = getClass().getClassLoader();
 
 		// set title and icon
@@ -87,6 +87,11 @@ public class FLIMJCommand implements Command {
 		// load scene
 		FXMLLoader loader = AbstractCtrl.getFXMLLoader("plugin-layout");
 		Scene scene = loader.<Scene>load();
+
+		// init fitting worker
+		FitParams<FloatType> params = new FitParams<>();
+		FitParamsPrompter.populate(params, datasetView.getData(), datasetView);
+		FitProcessor fp = new FitProcessor(datasetView.context(), params);
 
 		// init controllers
 		MainCtrl mainCtrl = loader.<MainCtrl>getController();
