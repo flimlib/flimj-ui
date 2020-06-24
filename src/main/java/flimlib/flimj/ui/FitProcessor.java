@@ -265,9 +265,7 @@ public class FitProcessor {
 			float defaultVal, String style) {
 		final String randKey = "FLIMJ-" + Math.random();
 		final String scriptTemplate = "" + //
-		// TODO: menuPath='' should not be necessary once
-		// https://github.com/scijava/scijava-common/pull/365 is resolved
-				"#@script (label='%s', menuPath='')\n" + //
+				"#@script (label='%s')\n" + //
 				"#@ CacheService cacheService\n" + //
 				"#@ %s (label='%s', %s %s %s style='%s') number\n" + //
 				// use this extra cache object to determine cancel/success
