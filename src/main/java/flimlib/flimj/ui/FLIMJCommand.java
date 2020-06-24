@@ -7,13 +7,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import flimlib.flimj.ui.controller.AbstractCtrl;
 import flimlib.flimj.ui.controller.MainCtrl;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -38,7 +42,7 @@ public class FLIMJCommand implements Command {
 		JFrame frame = new JFrame(TITLE);
 		JFXPanel fxPanel = new JFXPanel();
 		frame.add(fxPanel);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		// this setting keeps JFX services alive so that we can launch the app again
 		Platform.setImplicitExit(false);
@@ -75,7 +79,7 @@ public class FLIMJCommand implements Command {
 		frame.setIconImages(getIcons(cl.getResource(ICON_PATH)));
 
 		// load scene
-		FXMLLoader loader = MainCtrl.getFXMLLoader("plugin-layout");
+		FXMLLoader loader = AbstractCtrl.getFXMLLoader("plugin-layout");
 		Scene scene = loader.<Scene>load();
 
 		// init controllers
