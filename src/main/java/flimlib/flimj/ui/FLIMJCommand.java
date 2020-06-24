@@ -16,6 +16,7 @@ import net.imagej.display.DatasetView;
 
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
+import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -52,12 +53,16 @@ public class FLIMJCommand implements Command {
 				initFX(frame, fxPanel);
 				frame.setVisible(true);
 			} catch (UIException e) {
-				dataset.getContext().getService(LogService.class).info(e.getMessage());
+				log().error(e);
 			} catch (Exception e) {
-				e.printStackTrace();
+				log().error(e);
 				throw new RuntimeException(e);
 			}
 		});
+	}
+
+	private Logger log() {
+		return datasetView.context().service(LogService.class);
 	}
 
 	/**
