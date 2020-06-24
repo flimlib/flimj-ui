@@ -46,7 +46,7 @@ public class FitProcessor {
 	public static enum FitType {
 		LMA, Global, Bayes
 		/** Phasor */
-	};
+	}
 
 	private final Context ctx;
 
