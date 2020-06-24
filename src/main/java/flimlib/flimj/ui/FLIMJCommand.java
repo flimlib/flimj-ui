@@ -94,6 +94,7 @@ public class FLIMJCommand implements Command {
 
 		// release resources when done
 		frame.addWindowListener(new WindowAdapter() {
+			@Override
 			public void windowClosing(WindowEvent e) {
 				// TODO there is still a lot of memory leaks caused by listeners,
 				// remove them from each controller
