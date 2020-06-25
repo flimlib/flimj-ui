@@ -86,14 +86,14 @@ public final class FitParamsPrompter {
 				final int extLen = Math.min(extVals.length, extLbls.length);
 				for (int i = 0; i < extLen; i++) {
 					if ("t".equals(extLbls[i])) {
-						timeBase = Double.parseDouble(extVals[i]);
+						timeBase = Double.parseDouble(extVals[i]) * 1e9;
 						break;
 					}
 				}
 			}
 		}
-		if (timeBase < 0) timeBase = dataset.axis(ltAxis).calibratedValue(1);
-		if (timeBase < 0) timeBase = 10d / dataset.dimension(ltAxis);
+		if (timeBase < 0) timeBase = dataset.axis(ltAxis).calibratedValue(dataset.dimension(ltAxis));
+		if (timeBase < 0) timeBase = 10d;
 
 		// Ask the user to confirm the details.
 
@@ -123,7 +123,7 @@ public final class FitParamsPrompter {
 			ltAxisBox.getItems().add(new Dimension(d));
 		ltAxisBox.getSelectionModel().select(ltAxis);
 
-		final Spinner<Double> timeBaseBox = new Spinner<>(0, 1e10, timeBase, 0.1);
+		final Spinner<Double> timeBaseBox = new Spinner<>(0, 100, timeBase, 0.1);
 
 		final Button okButton = new Button("OK");
 		okButton.setDefaultButton(true);
@@ -148,7 +148,7 @@ public final class FitParamsPrompter {
 		// Create fit params and populate from final dialog values.
 
 		params.ltAxis = ltAxisBox.getSelectionModel().getSelectedIndex();
-		params.xInc = (float) (timeBaseBox.getValue() * 1e9 / dataset.dimension(params.ltAxis));
+		params.xInc = (float) (timeBaseBox.getValue() / dataset.dimension(params.ltAxis));
 
 		// Slice down to 3D, fixing positions of irrelevant dimensions.
 		@SuppressWarnings("unchecked")
