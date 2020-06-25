@@ -322,20 +322,22 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	@Override
 	public void refresh(FitParams<FloatType> params, FitResults results) {
-		iThreshSpinner.setMax(getOps().stats().max(results.intensityMap).getRealDouble());
-		iThreshSpinner.getNumberProperty().setValue((double) params.iThresh);
-		chisqTgtTextField.setText(Utils.prettyFmt(params.chisq_target));
-		noiseChoiceBox.setValue(params.noise);
-		nCompChoiceBox.setValue(params.nComp);
-		chisqTextField.setText(Utils.prettyFmt(results.chisq));
+		Platform.runLater(() -> {
+			iThreshSpinner.setMax(getOps().stats().max(results.intensityMap).getRealDouble());
+			iThreshSpinner.getNumberProperty().setValue((double) params.iThresh);
+			chisqTgtTextField.setText(Utils.prettyFmt(params.chisq_target));
+			noiseChoiceBox.setValue(params.noise);
+			nCompChoiceBox.setValue(params.nComp);
+			chisqTextField.setText(Utils.prettyFmt(results.chisq));
 
-		if (results.param != null) {
-			for (int i = 0; i < results.param.length; i++) {
-				final int paramIndex = paramIndices.get(i);
-				paramValues.get(paramIndex).getNumberProperty().set((double) results.param[i]);
-				paramFixed.get(i).selectedProperty().set(!params.paramFree[i]);
+			if (results.param != null) {
+				for (int i = 0; i < results.param.length; i++) {
+					final int paramIndex = paramIndices.get(i);
+					paramValues.get(paramIndex).getNumberProperty().set((double) results.param[i]);
+					paramFixed.get(i).selectedProperty().set(!params.paramFree[i]);
+				}
 			}
-		}
+		});
 	}
 
 	/**
