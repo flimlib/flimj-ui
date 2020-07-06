@@ -45,7 +45,7 @@ public class FLIMJCommand implements Command {
 	@Override
 	public void run() {
 		JFrame frame = new JFrame(TITLE);
-		JFXPanel fxPanel = new JFXPanel();
+		final JFXPanel fxPanel = new JFXPanel();
 		frame.add(fxPanel);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -115,7 +115,7 @@ public class FLIMJCommand implements Command {
 	 *      "https://docs.oracle.com/javase/8/javafx/interoperability-tutorial/swing-fx-interoperability.htm">oracle
 	 *      doc</a>
 	 */
-	private void initFX(JFrame frame, JFXPanel fxPanel) throws IOException {
+	private void initFX(final JFrame frame, final JFXPanel fxPanel) throws IOException {
 		ClassLoader cl = getClass().getClassLoader();
 
 		// set title and icon
@@ -123,18 +123,18 @@ public class FLIMJCommand implements Command {
 		frame.setIconImages(getIcons(cl.getResource(ICON_PATH)));
 
 		// load scene
-		FXMLLoader loader = AbstractCtrl.getFXMLLoader("plugin-layout");
-		Scene scene = loader.<Scene>load();
+		final FXMLLoader loader = AbstractCtrl.getFXMLLoader("plugin-layout");
+		final Scene scene = loader.<Scene>load();
 		fxPanel.setVisible(false);
 		fxPanel.setScene(scene);
 
 		// init fitting worker
-		FitParams<FloatType> params = new FitParams<>();
+		final FitParams<FloatType> params = new FitParams<>();
 		FitParamsPrompter.populate(params, datasetView.getData(), datasetView);
 		FitProcessor fp = new FitProcessor(datasetView.context(), params);
 
 		// init controllers
-		MainCtrl mainCtrl = loader.<MainCtrl>getController();
+		final MainCtrl mainCtrl = loader.<MainCtrl>getController();
 		mainCtrl.setFitProcessor(fp);
 
 		fp.refreshControllers();
@@ -162,9 +162,9 @@ public class FLIMJCommand implements Command {
 	 * @param url the URL of the icon image
 	 * @return the image in 16x16, 20x20, 32x32 and 40x40
 	 */
-	private List<Image> getIcons(URL url) {
-		Image img = new ImageIcon(url).getImage();
-		List<Image> imgs = new ArrayList<>();
+	private List<Image> getIcons(final URL url) {
+		final Image img = new ImageIcon(url).getImage();
+		final List<Image> imgs = new ArrayList<>();
 		for (int size : new int[] {16, 20, 32, 40}) {
 			imgs.add(img.getScaledInstance(size, size, Image.SCALE_SMOOTH));
 		}
