@@ -32,14 +32,14 @@ import javafx.scene.Scene;
 @Plugin(type = Command.class, menuPath = "Analyze>Lifetime>FLIMJ")
 public class FLIMJCommand implements Command {
 
-	@Parameter
-	private DatasetView datasetView;
-
 	/** The title of the application */
 	private static final String TITLE = "FLIMJ";
 
 	/** The path to the logo image */
 	private static final String ICON_PATH = "img/logo.png";
+
+	@Parameter
+	private DatasetView datasetView;
 
 	@Override
 	public void run() {
