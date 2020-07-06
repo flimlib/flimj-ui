@@ -141,6 +141,9 @@ public class FitProcessor {
 		this.controllers = controllers;
 	}
 
+	/**
+	 * Refreshes all controllers. Must be called from UI thread.
+	 */
 	public void refreshControllers() {
 		for (AbstractCtrl controller : controllers) {
 			controller.requestRefresh();

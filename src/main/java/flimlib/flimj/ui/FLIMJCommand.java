@@ -97,11 +97,8 @@ public class FLIMJCommand implements Command {
 		MainCtrl mainCtrl = loader.<MainCtrl>getController();
 		mainCtrl.setFitProcessor(fp);
 
-		// in case any operation crashes the main thread
-		fp.submitRunnable(() -> {
-			fp.refreshControllers();
-			fp.updateFit();
-		});
+		fp.refreshControllers();
+		fp.updateFit();
 
 		fxPanel.setScene(scene);
 		// not sure why need extra margins to correctly dispay the whole scene
