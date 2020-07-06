@@ -1,5 +1,6 @@
 package flimlib.flimj.ui;
 
+import java.awt.EventQueue;
 import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -42,25 +43,26 @@ public class FLIMJCommand implements Command {
 	@Parameter
 	private DatasetView datasetView;
 
+	private FitProcessor fp;
+
 	@Override
 	public void run() {
-		JFrame frame = new JFrame(TITLE);
 		final JFXPanel fxPanel = new JFXPanel();
-		frame.add(fxPanel);
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		// this setting keeps JFX services alive so that we can launch the app again
 		Platform.setImplicitExit(false);
-		Platform.runLater(() -> {
+		runAndWait(() -> {
 			try {
-				initFX(frame, fxPanel);
-				frame.setVisible(true);
+				initFX(fxPanel);
 			} catch (UIException e) {
 				log().error(e);
 			} catch (Exception e) {
 				log().error(e);
 				throw new RuntimeException(e);
 			}
+		});
+		EventQueue.invokeLater(() -> {
+			initSwing(fxPanel);
 		});
 	}
 
@@ -108,30 +110,22 @@ public class FLIMJCommand implements Command {
 	/**
 	 * Initializes the GUI frame.
 	 * 
-	 * @param frame   the application frame
 	 * @param fxPanel the embeded channel
 	 * @throws IOException if the fxml is not found
 	 * @see <a href=
 	 *      "https://docs.oracle.com/javase/8/javafx/interoperability-tutorial/swing-fx-interoperability.htm">oracle
 	 *      doc</a>
 	 */
-	private void initFX(final JFrame frame, final JFXPanel fxPanel) throws IOException {
-		ClassLoader cl = getClass().getClassLoader();
-
-		// set title and icon
-		frame.setTitle(TITLE);
-		frame.setIconImages(getIcons(cl.getResource(ICON_PATH)));
-
+	private void initFX(final JFXPanel fxPanel) throws IOException {
 		// load scene
 		final FXMLLoader loader = AbstractCtrl.getFXMLLoader("plugin-layout");
 		final Scene scene = loader.<Scene>load();
-		fxPanel.setVisible(false);
 		fxPanel.setScene(scene);
 
 		// init fitting worker
 		final FitParams<FloatType> params = new FitParams<>();
 		FitParamsPrompter.populate(params, datasetView.getData(), datasetView);
-		FitProcessor fp = new FitProcessor(datasetView.context(), params);
+		fp = new FitProcessor(datasetView.context(), params);
 
 		// init controllers
 		final MainCtrl mainCtrl = loader.<MainCtrl>getController();
@@ -139,10 +133,21 @@ public class FLIMJCommand implements Command {
 
 		fp.refreshControllers();
 		fp.updateFit();
+	}
 
-		fxPanel.setVisible(true);
-		// not sure why need extra margins to correctly dispay the whole scene
-		frame.setSize((int) scene.getWidth() + 20, (int) scene.getHeight() + 50);
+	private void initSwing(final JFXPanel fxPanel) {
+		final JFrame frame = new JFrame(TITLE);
+		frame.add(fxPanel);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
+		// set title and icon
+		frame.setTitle(TITLE);
+		frame.setIconImages(getIcons(FLIMJCommand.class.getClassLoader().getResource(ICON_PATH)));
+
+		frame.pack();
+		// HACK: add extra margins to correctly dispay the whole scene
+		frame.setSize(frame.getWidth() + 20, frame.getHeight() + 50);
+		frame.setVisible(true);
 
 		// release resources when done
 		frame.addWindowListener(new WindowAdapter() {
