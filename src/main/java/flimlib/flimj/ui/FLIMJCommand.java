@@ -51,9 +51,10 @@ public class FLIMJCommand implements Command {
 
 		// this setting keeps JFX services alive so that we can launch the app again
 		Platform.setImplicitExit(false);
+		final boolean[] initSuccessful = {false};
 		runAndWait(() -> {
 			try {
-				initFX(fxPanel);
+				initSuccessful[0] = initFX(fxPanel);
 			} catch (UIException e) {
 				log().error(e);
 			} catch (Exception e) {
@@ -61,9 +62,13 @@ public class FLIMJCommand implements Command {
 				throw new RuntimeException(e);
 			}
 		});
-		EventQueue.invokeLater(() -> {
-			initSwing(fxPanel);
-		});
+		if (initSuccessful[0])
+			EventQueue.invokeLater(() -> {
+				initSwing(fxPanel);
+			});
+		
+		if (!initSuccessful[0])
+			log().warn("FLIMJ: UI init failed or aborted by user. Exiting.");
 	}
 
 	/**
@@ -112,11 +117,12 @@ public class FLIMJCommand implements Command {
 	 * 
 	 * @param fxPanel the embeded channel
 	 * @throws IOException if the fxml is not found
+	 * @return <code>true</code> - if the operation is successful
 	 * @see <a href=
 	 *      "https://docs.oracle.com/javase/8/javafx/interoperability-tutorial/swing-fx-interoperability.htm">oracle
 	 *      doc</a>
 	 */
-	private void initFX(final JFXPanel fxPanel) throws IOException {
+	private boolean initFX(final JFXPanel fxPanel) throws IOException {
 		// load scene
 		final FXMLLoader loader = AbstractCtrl.getFXMLLoader("plugin-layout");
 		final Scene scene = loader.<Scene>load();
@@ -124,7 +130,7 @@ public class FLIMJCommand implements Command {
 
 		// init fitting worker
 		final FitParams<FloatType> params = new FitParams<>();
-		FitParamsPrompter.populate(params, datasetView.getData(), datasetView);
+		if (!FitParamsPrompter.populate(params, datasetView.getData(), datasetView)) return false;
 		fp = new FitProcessor(datasetView.context(), params);
 
 		// init controllers
@@ -133,6 +139,8 @@ public class FLIMJCommand implements Command {
 
 		fp.refreshControllers();
 		fp.updateFit();
+
+		return true;
 	}
 
 	private void initSwing(final JFXPanel fxPanel) {

@@ -556,7 +556,8 @@ public class SettingsCtrl extends AbstractCtrl {
 		} else if (getDss().canOpen(irfPath)) {
 			final Dataset dataset = getDss().open(irfPath);
 			final Localizable pos = new Point(Intervals.minAsLongArray(dataset));
-			FitParamsPrompter.populate(irfParams, dataset, pos);
+			if (!FitParamsPrompter.populate(irfParams, dataset, pos))
+				irfParams = null;
 		}
 
 		return irfParams;

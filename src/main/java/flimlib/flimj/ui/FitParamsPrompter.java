@@ -44,7 +44,7 @@ public final class FitParamsPrompter {
 	 * @param position The position at which to slice the dataset, if
 	 *          dimensionality is greater than 3D.
 	 */
-	public static <T extends RealType<T>> void populate(
+	public static <T extends RealType<T>> boolean populate(
 		final FitParams<FloatType> params, final Dataset dataset,
 		final Localizable position)
 	{
@@ -103,6 +103,8 @@ public final class FitParamsPrompter {
 		dialog.initStyle(StageStyle.UTILITY);
 		dialog.initModality(Modality.APPLICATION_MODAL);
 		dialog.centerOnScreen();
+		final boolean[] closedByUser = {false};
+		dialog.setOnCloseRequest(event -> closedByUser[0] = true);
 
 		class Dimension {
 			private final int d;
@@ -145,6 +147,9 @@ public final class FitParamsPrompter {
 		dialog.setScene(new Scene(layout));
 		dialog.showAndWait();
 
+		if (closedByUser[0])
+			return false;
+
 		// Create fit params and populate from final dialog values.
 
 		params.ltAxis = ltAxisBox.getSelectionModel().getSelectedIndex();
@@ -164,5 +169,7 @@ public final class FitParamsPrompter {
 		}
 		// Convert sliced FLIM data to float32 data type.
 		params.transMap = ops.convert().float32(Views.iterable(img));
+
+		return true;
 	}
 }
