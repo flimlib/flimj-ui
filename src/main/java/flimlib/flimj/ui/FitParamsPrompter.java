@@ -101,7 +101,7 @@ public final class FitParamsPrompter {
 
 		dialog.setTitle("FLIMJ");
 		dialog.initStyle(StageStyle.UTILITY);
-		dialog.initModality(Modality.WINDOW_MODAL);
+		dialog.initModality(Modality.APPLICATION_MODAL);
 		dialog.centerOnScreen();
 
 		class Dimension {
