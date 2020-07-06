@@ -87,6 +87,8 @@ public class FLIMJCommand implements Command {
 		// load scene
 		FXMLLoader loader = AbstractCtrl.getFXMLLoader("plugin-layout");
 		Scene scene = loader.<Scene>load();
+		fxPanel.setVisible(false);
+		fxPanel.setScene(scene);
 
 		// init fitting worker
 		FitParams<FloatType> params = new FitParams<>();
@@ -100,7 +102,7 @@ public class FLIMJCommand implements Command {
 		fp.refreshControllers();
 		fp.updateFit();
 
-		fxPanel.setScene(scene);
+		fxPanel.setVisible(true);
 		// not sure why need extra margins to correctly dispay the whole scene
 		frame.setSize((int) scene.getWidth() + 20, (int) scene.getHeight() + 50);
 
