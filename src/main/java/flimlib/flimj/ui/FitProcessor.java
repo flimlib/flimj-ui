@@ -1,41 +1,33 @@
 package flimlib.flimj.ui;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.scijava.Context;
-import org.scijava.cache.CacheService;
-import org.scijava.script.ScriptModule;
-import org.scijava.script.ScriptService;
-import org.scijava.service.Service;
-import net.imagej.Dataset;
-import net.imagej.ImgPlus;
-import net.imagej.axis.Axes;
-import net.imagej.axis.CalibratedAxis;
+
 import net.imagej.ops.OpService;
-import flimlib.flimj.ui.controller.AbstractCtrl;
-import io.scif.filters.PlaneSeparatorMetadata;
-import flimlib.flimj.FitParams;
-import flimlib.flimj.FitResults;
-import flimlib.flimj.ParamEstimator;
-import flimlib.flimj.FlimOps;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.outofbounds.OutOfBoundsPeriodicFactory;
-import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
+
+import org.scijava.Context;
+import org.scijava.service.Service;
+
+import flimlib.flimj.FitParams;
+import flimlib.flimj.FitResults;
+import flimlib.flimj.FlimOps;
+import flimlib.flimj.ParamEstimator;
+import flimlib.flimj.ui.controller.AbstractCtrl;
 
 /**
  * ProcessingService
@@ -46,13 +38,11 @@ public class FitProcessor {
 	public static enum FitType {
 		LMA, Global, Bayes
 		/** Phasor */
-	};
+	}
 
 	private final Context ctx;
 
 	private final OpService ops;
-
-	private final Dataset dataset;
 
 	private final FitParams<FloatType> DEFAULT_IRF_INFO;
 
@@ -96,11 +86,10 @@ public class FitProcessor {
 		};
 	}
 
-	public FitProcessor(Dataset dataset) {
-		this.dataset = dataset;
-		this.ctx = dataset.getContext();
+	public FitProcessor(final Context context, final FitParams<FloatType> params) {
+		this.ctx = context;
 		this.ops = getService(OpService.class);
-		this.params = new FitParams<>();
+		this.params = params;
 		this.DEFAULT_IRF_INFO = new FitParams<>();
 		this.irfInfoParams = DEFAULT_IRF_INFO;
 		this.results = new FitResults();
@@ -115,9 +104,6 @@ public class FitProcessor {
 	}
 
 	private void init() {
-		if (!populateParams(this.dataset)) {
-			throw new UIException("FLIMJ initialization aborted by user.");
-		}
 		long[] perm = swapOutLtAxis(new long[] {0, 1, 2}, params.ltAxis);
 		axisOrder = new int[] {(int) perm[0], (int) perm[1], (int) perm[2]};
 
@@ -151,150 +137,13 @@ public class FitProcessor {
 			estimator.estimateIThreshold();
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T extends RealType<T>> boolean populateParams(Dataset dataset,
-			FitParams<FloatType> params) {
-		ImgPlus<T> imp = (ImgPlus<T>) dataset.getImgPlus();
-		// dimensionality check
-		final int nD = imp.numDimensions();
-		if (nD < 3 || nD > 4) {
-			throw new IllegalArgumentException("Dataset dimensionality (" + nD + ") is not 3 or 4");
-		}
-		RandomAccessibleInterval<FloatType> img = ops.convert().float32(imp.getImg());
-
-		int channelAxis = -1;
-		if (nD == 4) {
-			final String[] cAxisLabels = {"Channel", "Spectra"};
-			for (String label : cAxisLabels) {
-				channelAxis = dataset.dimensionIndex(Axes.get(label));
-				if (channelAxis != -1) {
-					break;
-				}
-			}
-
-			// prompt for channel selection
-			if (channelAxis == -1)
-				channelAxis = (int) harvestNumber("Multiple Channel Detected", "Integer",
-						"Select Channel Dimension Index:", 0, nD - 1, 0, "slider");
-			if (Float.isNaN(channelAxis)) {
-				return false;
-			}
-			int channelIndex = (int) harvestNumber("Multiple Channel Detected", "Integer",
-					"Select Channel:", 0, img.dimension(channelAxis) - 1, 0, "slider");
-			if (Float.isNaN(channelIndex)) {
-				return false;
-			}
-			img = Views.hyperSlice(img, channelAxis, channelIndex);
-		}
-		params.transMap = img;
-
-		// axis index
-		final String[] axisLabels = {"Time", "Lifetime"};
-		for (String label : axisLabels) {
-			params.ltAxis = dataset.dimensionIndex(Axes.get(label));
-			if (params.ltAxis != -1) {
-				break;
-			}
-		}
-		if (params.ltAxis == -1) {
-			params.ltAxis = (int) harvestNumber("Lifetime Axis Not Detected", "Integer",
-					"Select Time Dimension Index:", 0, nD - 1, 0, "slider");
-			if (Float.isNaN(params.ltAxis)) {
-				return false;
-			}
-		}
-		// in case the channel axis before the lifetime axis is dropped
-		if (channelAxis != -1 && channelAxis < params.ltAxis) {
-			params.ltAxis -= 1;
-		}
-
-		// time increment
-		String fileName = imp.getSource();
-		String fileExt = fileName.substring(fileName.lastIndexOf(".") + 1);
-		switch (fileExt) {
-			case "ics":
-				PlaneSeparatorMetadata scifioGlobalProperty =
-						(PlaneSeparatorMetadata) imp.getProperties().get("scifio.metadata.global");
-				String[] extVals = ((String) scifioGlobalProperty.getTable().get("history extents"))
-						.split("\\s+");
-				String[] extLbls = ((String) scifioGlobalProperty.getTable().get("history labels"))
-						.split("\\s+");
-				for (int i = 0; i < extLbls.length; i++) {
-					if ("t".equals(extLbls[i])) {
-						params.xInc = new BigDecimal(extVals[i]).floatValue() * 1e9f
-								/ img.dimension(params.ltAxis);
-						break;
-		}
-				}
-				break;
-
-			default:
-				CalibratedAxis lifetimeAxis = imp.axis(params.ltAxis);
-		params.xInc = (float) lifetimeAxis.calibratedValue(1);
-				break;
-		}
-		if (params.xInc <= 0) {
-			float timeBin = harvestNumber("Time Base Info Not Detected", "Float",
-					"Input Time Base (ns):", 0, Float.NaN, 10, "spinner");
-			if (Float.isNaN(timeBin)) {
-				return false;
-			}
-			params.xInc = timeBin / imp.dimension(params.ltAxis);
-		}
-
-		return true;
-	}
-
-	public <T extends RealType<T>> boolean populateParams(Dataset dataset) {
-		return populateParams(dataset, this.params);
-	}
-
-	/**
-	 * Harvest user numerical input
-	 * 
-	 * @param title      the dialog title
-	 * @param type       Integer, Float, etc.
-	 * @param label      Descriptive label on the left
-	 * @param min        mininmum, Float.NaN ignores this setting
-	 * @param max        maxinmum, Float.NaN ignores this setting
-	 * @param defaultVal default input value, Float.NaN ignores this setting
-	 * @param style      slider | spinner | scroll bar
-	 * @return the harvested value
-	 */
-	private float harvestNumber(String title, String type, String label, float min, float max,
-			float defaultVal, String style) {
-		final String randKey = "FLIMJ-" + Math.random();
-		final String scriptTemplate = "" + //
-		// TODO: menuPath='' should not be necessary once
-		// https://github.com/scijava/scijava-common/pull/365 is resolved
-				"#@script (label='%s', menuPath='')\n" + //
-				"#@ CacheService cacheService\n" + //
-				"#@ %s (label='%s', %s %s %s style='%s') number\n" + //
-				// use this extra cache object to determine cancel/success
-				"cacheService.put('" + randKey + "', true)\n";
-		try {
-			final String script = String.format(scriptTemplate, title, type, label,
-					min != Float.NaN ? "min=" + min + "," : "",
-					max != Float.NaN ? "max=" + max + "," : "",
-					defaultVal != Float.NaN ? "value=" + defaultVal + "," : "", style);
-			final ScriptModule module =
-					ctx.getService(ScriptService.class).run(title + ".js", script, true).get();
-			final CacheService cacheSvc = ctx.getService(CacheService.class);
-			if (cacheSvc.get(randKey) != null) {
-				// remove key
-				cacheSvc.put(randKey, null);
-				return ((Number) module.getInput("number")).floatValue();
-			}
-		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-		}
-		return Float.NaN;
-	}
-
 	public void setControllers(AbstractCtrl... controllers) {
 		this.controllers = controllers;
 	}
 
+	/**
+	 * Refreshes all controllers. Must be called from UI thread.
+	 */
 	public void refreshControllers() {
 		for (AbstractCtrl controller : controllers) {
 			controller.requestRefresh();
@@ -333,7 +182,7 @@ public class FitProcessor {
 	 * @return the SciJava service
 	 */
 	public <S extends Service> S getService(final Class<S> c) {
-		return ctx.getService(c);
+		return ctx.service(c);
 	}
 
 	public void updateFit() {
