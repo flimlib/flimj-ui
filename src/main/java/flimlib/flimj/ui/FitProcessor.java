@@ -117,7 +117,6 @@ public class FitProcessor {
 		params.param = new float[0];
 		params.paramMap =
 				ArrayImgs.floats(params.param, swapInLtAxis(new long[] {1, 1, 0}, params.ltAxis));
-		params.iThreshPercent = 5;
 
 		contextualPreviewOptions = new ArrayList<>();
 		persistentPreviewOptions = new ArrayList<>();
@@ -131,10 +130,6 @@ public class FitProcessor {
 		origIntensity = estimator.getIntensityMap();
 		estimator.estimateStartEnd();
 		params.transMap = tmpTransMap;
-		// default 5% threshold percentage should result in a non-trivial threshold
-		// or the user may have set this number
-		if (params.iThresh == 0)
-			estimator.estimateIThreshold();
 	}
 
 	public void setControllers(AbstractCtrl... controllers) {
