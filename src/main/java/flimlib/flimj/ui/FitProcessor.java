@@ -417,6 +417,12 @@ public class FitProcessor {
 
 	@SuppressWarnings("unchecked")
 	public RandomAccessibleInterval<FloatType> getPreviewImg(String option) {
+		// immediately available after param population
+		if (option.equals("Intensity"))
+			return Views.dropSingletonDimensions(results.intensityMap);
+		else if (option.equals("IRF Intensity"))
+			return Views.dropSingletonDimensions(irfIntensity);
+
 		int optionIdx = -1;
 		switch (fitType) {
 			case "LMA":
@@ -424,11 +430,7 @@ public class FitProcessor {
 			case "Bayes":
 				FitResults rslt = results.copy();
 				rslt.paramMap = dispParams;
-				if (option.equals("Intensity"))
-					return Views.dropSingletonDimensions(rslt.intensityMap);
-				else if (option.equals("IRF Intensity"))
-					return Views.dropSingletonDimensions(irfIntensity);
-				else if (option.contains("%")) {
+				if (option.contains("%")) {
 					switch (option) {
 						case "A₁ %": optionIdx = 0; break;
 						case "A₂ %": optionIdx = 1; break;
