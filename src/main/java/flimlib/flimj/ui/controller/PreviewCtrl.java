@@ -315,8 +315,7 @@ public class PreviewCtrl extends AbstractCtrl {
 		csrXSpinner.setMax(w - 1);
 		csrYSpinner.setMax(h - 1);
 
-		// results.intensityMap() is 3d
-		loadAnotatedIntensityImage(Views.dropSingletonDimensions(results.intensityMap));
+		loadAnotatedIntensityImage(fp.getPreviewImg("Intensity"));
 
 		// update options if changed
 		List<String> fpOptions = fp.getPreviewOptions();

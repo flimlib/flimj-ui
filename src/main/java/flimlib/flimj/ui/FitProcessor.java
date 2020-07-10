@@ -419,9 +419,9 @@ public class FitProcessor {
 	public RandomAccessibleInterval<FloatType> getPreviewImg(String option) {
 		// immediately available after param population
 		if (option.equals("Intensity"))
-			return Views.dropSingletonDimensions(results.intensityMap);
+			return Views.hyperSlice(results.intensityMap, params.ltAxis, 0);
 		else if (option.equals("IRF Intensity"))
-			return Views.dropSingletonDimensions(irfIntensity);
+			return Views.hyperSlice(irfIntensity, params.ltAxis, 0);
 
 		int optionIdx = -1;
 		switch (fitType) {
