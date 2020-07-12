@@ -1,6 +1,7 @@
 package flimlib.flimj.ui.controller;
 
 import java.io.IOException;
+import org.scijava.log.LogService;
 import org.scijava.object.ObjectService;
 import org.scijava.ui.UIService;
 import javafx.fxml.FXMLLoader;
@@ -120,6 +121,15 @@ public abstract class AbstractCtrl {
 	 */
 	protected DatasetIOService getDss() {
 		return fp.getService(DatasetIOService.class);
+	}
+
+	/**
+	 * Gets the log service in context.
+	 * 
+	 * @return the log service
+	 */
+	protected LogService getLogs() {
+		return fp.getService(LogService.class);
 	}
 
 	/**

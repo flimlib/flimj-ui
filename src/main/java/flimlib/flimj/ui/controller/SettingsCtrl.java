@@ -264,14 +264,14 @@ public class SettingsCtrl extends AbstractCtrl {
 								// remember/update IRF
 								presentDatasets.put(currentSelection, chosenIRF);
 							}
-						} catch (IOException e) {
-							e.printStackTrace();
+						} catch (Exception e) {
 							getUIs().showDialog(
 									String.format(
 											"Error occurred during opening %s\nSee Console log.",
 											irfPath),
 									"FLIMJ", MessageType.ERROR_MESSAGE,
 									OptionType.OK_CANCEL_OPTION);
+							getLogs().error(e.getMessage());
 						}
 					} else
 						getUIs().showDialog(
