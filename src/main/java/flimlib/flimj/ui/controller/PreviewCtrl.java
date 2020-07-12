@@ -235,10 +235,6 @@ public class PreviewCtrl extends AbstractCtrl {
 		lClickPane.setOnMouseExited(cbHideHandler);
 		rClickPane.setOnMouseExited(cbHideHandler);
 
-		// both CB are enabled after the first fit is done
-		// showChoiceBox.setDisable(true);
-		// asChoiceBox.setDisable(true);
-
 		showChoiceBox.valueProperty().addListener((obs, oldVal, newVal) -> {
 			// HACK: The section below handles two corner cases to this change listener:
 			// 1. The list of items is updated, and the selected item is in the new list:
@@ -258,10 +254,13 @@ public class PreviewCtrl extends AbstractCtrl {
 				lastValidPreviewOption =
 						items.contains(lastValidPreviewOption) ? lastValidPreviewOption : null;
 				showChoiceBox.setValue(lastValidPreviewOption);
+				// enabled if there is a show option
+				asChoiceBox.setDisable(lastValidPreviewOption == null);
 				return;
 			} else {
 				lastValidPreviewOption = newVal;
 			}
+			asChoiceBox.setDisable(false);
 
 			// special cases
 			if ("IRF Intensity".equals(showChoiceBox.getValue())) {
@@ -304,6 +303,8 @@ public class PreviewCtrl extends AbstractCtrl {
 			}
 			refreshResultImage();
 		});
+		// enabled if there is a show option
+		asChoiceBox.setDisable(true);
 
 		colorizeResult = compositeResult = true;
 	}
