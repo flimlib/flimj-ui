@@ -240,6 +240,13 @@ public class PreviewCtrl extends AbstractCtrl {
 		// asChoiceBox.setDisable(true);
 
 		showChoiceBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+			// HACK: The section below handles two corner cases to this change listener:
+			// 1. The list of items is updated, and the selected item is in the new list:
+			// -- ChoiceBox behavior: Clear the selection (set to null).
+			// -- Handling: Retain the last known selection (the same one, but from the old list).
+			// 2. The list of items is updated, but the selected item is no longer present:
+			// -- ChoiceBox behavior: Retain the selection.
+			// -- Handling: Clear the selection (the HACK below) and display the placeholder image.
 			if (oldVal == null && newVal.equals(lastValidPreviewOption)) {
 				// ignore update if we are recovering from the below situation
 				return;
@@ -249,8 +256,7 @@ public class PreviewCtrl extends AbstractCtrl {
 				// use old option if it is still there
 				List<String> items = showChoiceBox.getItems();
 				lastValidPreviewOption =
-						items.contains(lastValidPreviewOption) ? lastValidPreviewOption
-								: items.get(0);
+						items.contains(lastValidPreviewOption) ? lastValidPreviewOption : null;
 				showChoiceBox.setValue(lastValidPreviewOption);
 				return;
 			} else {
@@ -317,11 +323,15 @@ public class PreviewCtrl extends AbstractCtrl {
 
 		loadAnotatedIntensityImage(fp.getPreviewImg("Intensity"));
 
-		// update options if changed
-		List<String> fpOptions = fp.getPreviewOptions();
-		if (!showChoiceBox.getItems().equals(fpOptions)) {
-			showChoiceBox.getItems().setAll(fpOptions);
-		}
+		// load new options
+		showChoiceBox.getItems().setAll(fp.getPreviewOptions());
+		// HACK: If the selected value is removed from the list, {@link ChoiceBox#valueProperty()}
+		// will retain the removed value and so no change event will be fired. Rather, {@link
+		// ChoiceBox#selectionModelProperty()} will set its selected index to -1. When this happens,
+		// the default behavior is to clear the #showChoiceBox selection and display the default
+		// image placeholder.
+		if (showChoiceBox.getSelectionModel().getSelectedIndex() == -1)
+			showChoiceBox.setValue(null);
 
 		refreshResultImage();
 	}
