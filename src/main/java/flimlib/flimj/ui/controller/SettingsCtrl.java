@@ -33,6 +33,7 @@ import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -54,6 +55,9 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	@FXML
 	private NumericSpinner binSizeSpinner, iThreshSpinner;
+
+	@FXML
+	private CheckBox fullBinningCheckBox;
 
 	@FXML
 	private NumericTextField chisqTgtTextField;
@@ -137,12 +141,29 @@ public class SettingsCtrl extends AbstractCtrl {
 
 				// update of UI components should be run from JFX thread
 				Platform.runLater(() -> {
-					binSizeSpinner.setDisable(false);
+					binSizeSpinner.setDisable(!fullBinningCheckBox.isSelected());
 					binningBusyProgressIndicator.setVisible(false);
 
 					requestUpdate();
 				});
 			});
+		});
+		fullBinningCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+
+			private double lastSize;
+
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+					Boolean newValue) {
+				ObjectProperty<Double> binSizeProperty = binSizeSpinner.getNumberProperty();
+				if (newValue) {
+					lastSize = binSizeProperty.get();
+					binSizeProperty.set(-1.0);
+				} else {
+					binSizeSpinner.setDisable(false);
+					binSizeProperty.set(lastSize);
+				}
+			}
 		});
 
 		chisqTgtTextField.getNumberProperty().addListener((obs, oldVal, newVal) -> {
