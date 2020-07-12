@@ -62,7 +62,7 @@
                           </children>
                         </StackPane>
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Algorithm" GridPane.rowIndex="2" />
-                        <ChoiceBox fx:id="algoChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <ChoiceBox fx:id="algoChoiceBox" prefWidth="120.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                           <value>
                             <FitProcessor.FitType fx:value="LMA" />
                           </value>
