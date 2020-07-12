@@ -350,6 +350,8 @@ public class PreviewCtrl extends AbstractCtrl {
 	private void refreshResultImage() {
 		String showOption = showChoiceBox.getValue();
 		if (showOption == null) {
+			// show placeholder image
+			resultDisplay.setImage(null, null, null);
 			return;
 		}
 		loadAnotatedResultsImage(fp.getPreviewImg(showOption), colorizeResult, compositeResult);

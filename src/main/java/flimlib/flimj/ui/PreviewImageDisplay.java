@@ -5,8 +5,10 @@ import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -28,6 +30,13 @@ public class PreviewImageDisplay {
 
 	/** Threshold of pixScale change that necessitates resampling */
 	static final private double RELOAD_THR = 1.5;
+
+	/** The path to the logo image */
+	private static final String ICON_PATH = "img/logo.png";
+
+	/** The default image to show */
+	private static final Image PLACEHOLDER_IMAGE =
+			new Image(PreviewImageDisplay.class.getClassLoader().getResource(ICON_PATH).toString());
 
 	/** The pixel cursor */
 	final private Group cursor;
@@ -131,6 +140,8 @@ public class PreviewImageDisplay {
 
 	/**
 	 * Shows an float valued image, posibly multiplied the color by another image of the same size.
+	 * If the first two arguments are <code>null</code>, the display will show the
+	 * {@link #PLACEHOLDER_IMAGE}.
 	 * 
 	 * @param src               The source image
 	 * @param converter         The LUT
@@ -139,47 +150,66 @@ public class PreviewImageDisplay {
 	public void setImage(final RandomAccessibleInterval<FloatType> src,
 			final RealLUTConverter<FloatType> converter, final ARGBScreenImage composeBrightness) {
 		rawImage = src;
-		IterableInterval<ARGBType> colored =
-				Converters.convert(Views.iterable(src), converter, new ARGBType());
 
 		final int oldW = imgW;
 		final int oldH = imgH;
-		imgW = (int) src.dimension(0);
-		imgH = (int) src.dimension(1);
+
+		if (src != null && converter != null) {
+			imgW = (int) src.dimension(0);
+			imgH = (int) src.dimension(1);
+		} else {
+			imgW = (int) PLACEHOLDER_IMAGE.getWidth();
+			imgH = (int) PLACEHOLDER_IMAGE.getHeight();
+		}
 
 		// reallocate buffers
 		if (oldW != imgW || oldH != imgH)
 			screenImage = new ARGBScreenImage(imgW, imgH);
 
-		Iterator<ARGBType> dstItr = screenImage.iterator();
-		Iterator<ARGBType> srcItr = colored.iterator();
-		while (srcItr.hasNext() && dstItr.hasNext())
-			dstItr.next().set(srcItr.next().get());
+		if (src != null && converter != null) {
+			IterableInterval<ARGBType> colored =
+					Converters.convert(Views.iterable(src), converter, new ARGBType());
 
-		// multiply brightness by rgb from composeBrightness
-		if (composeBrightness != null) {
-			int[] lData = composeBrightness.getData();
-			int[] hData = screenImage.getData();
+			// copy rendered src to screenImage
+			Iterator<ARGBType> dstItr = screenImage.iterator();
+			Iterator<ARGBType> srcItr = colored.iterator();
+			while (srcItr.hasNext() && dstItr.hasNext())
+				dstItr.next().set(srcItr.next().get());
 
-			for (int i = 0; i < hData.length; i++) {
-				int h = hData[i];
-				int l = lData[i];
+			// multiply brightness by rgb from composeBrightness
+			if (composeBrightness != null) {
+				int[] lData = composeBrightness.getData();
+				int[] hData = screenImage.getData();
 
-				hData[i] = ARGBType.rgba( //
-						(int) (ARGBType.red(h) / 255.0 * ARGBType.red(l)),
-						(int) (ARGBType.green(h) / 255.0 * ARGBType.green(l)),
-						(int) (ARGBType.blue(h) / 255.0 * ARGBType.blue(l)),
-						(int) (ARGBType.alpha(h) / 255.0 * ARGBType.alpha(l)));
+				for (int i = 0; i < hData.length; i++) {
+					int h = hData[i];
+					int l = lData[i];
+
+					hData[i] = ARGBType.rgba( //
+							(int) (ARGBType.red(h) / 255.0 * ARGBType.red(l)),
+							(int) (ARGBType.green(h) / 255.0 * ARGBType.green(l)),
+							(int) (ARGBType.blue(h) / 255.0 * ARGBType.blue(l)),
+							(int) (ARGBType.alpha(h) / 255.0 * ARGBType.alpha(l)));
+				}
 			}
+
+			view.setOpacity(1);
+
+			clickPane.setVisible(true);
+			cursor.setVisible(true);
+		} else {
+			// show placeholder
+			SwingFXUtils.fromFXImage(PLACEHOLDER_IMAGE, screenImage.image());
+
+			view.setOpacity(0.3);
+
+			clickPane.setVisible(false);
+			cursor.setVisible(false);
 		}
 
 		// resize with parent
 		Bounds parentBounds = view.getParent().getLayoutBounds();
 		fitSize(parentBounds.getWidth() - 10, parentBounds.getHeight() - 10);
-
-		// enable for the first time
-		clickPane.setVisible(true);
-		cursor.setVisible(true);
 
 		// force update as content may change
 		lastReloadPixScale = Double.MIN_VALUE;
