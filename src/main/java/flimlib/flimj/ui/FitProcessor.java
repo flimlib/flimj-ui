@@ -228,7 +228,6 @@ public class FitProcessor {
 			binnedTrans = null;
 			binRadius = size;
 			if (size > 0) {
-				System.out.println(allMask);
 				Img<DoubleType> kernel = FlimOps.makeSquareKernel(size * 2 + 1);
 				results.intensityMap = (Img<FloatType>) (allMask
 						? ops.filter().convolve(origIntensity, kernel,
