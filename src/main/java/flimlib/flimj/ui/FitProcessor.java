@@ -100,7 +100,7 @@ public class FitProcessor {
 
 		setBinning(0);
 
-		setPreviewPos(0, 0);
+		setPreviewPos(0, 0, false);
 	}
 
 	private void init() {
@@ -235,9 +235,9 @@ public class FitProcessor {
 						: ops.filter().convolve(origIntensity, kernel));
 			} else
 				results.intensityMap = (Img<FloatType>) origIntensity;
-
-			setPreviewPos(previewX, previewY);
 		}
+		// load trans after binning
+		setPreviewPos(previewX, previewY, false);
 	}
 
 	public void setAlgo(FitType algo) {
@@ -335,10 +335,10 @@ public class FitProcessor {
 		return nParam;
 	}
 
-	public void setPreviewPos(int x, int y) {
-		if (isPickingIRF) {
-			// just load the IRF into the .trans array
+	public void setPreviewPos(final int x, final int y, final boolean irf) {
+		if (irf) {
 			fillTrans(irfInfoParams.transMap, irfInfoParams.trans, x, y, axisOrder, 0);
+			updateIRFRange();
 		} else {
 			previewX = x;
 			previewY = y;

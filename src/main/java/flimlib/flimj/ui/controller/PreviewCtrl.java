@@ -403,7 +403,7 @@ public class PreviewCtrl extends AbstractCtrl {
 		csrXSpinner.getNumberProperty().set((double) x);
 		csrYSpinner.getNumberProperty().set((double) y);
 
-		fp.setPreviewPos(x, y);
+		fp.setPreviewPos(x, y, fp.isPickingIRF());
 		requestUpdate();
 
 		updating = false;
