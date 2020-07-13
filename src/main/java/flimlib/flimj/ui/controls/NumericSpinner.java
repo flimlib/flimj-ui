@@ -7,11 +7,10 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 
 /**
- * The class defines a {@link TextField} that consumes only numeric inputs. A
- * numeric property is associated with this TextField and will be updated upon
- * the user's pressing ENTER or the TextField's lossing focus. If the input
- * (even before pressing ENTER) does not match the scientific or percentage
- * format, the TextField will be highlighted.
+ * The class defines a {@link TextField} that consumes only numeric inputs. A numeric property is
+ * associated with this TextField and will be updated upon the user's pressing ENTER or the
+ * TextField's lossing focus. If the input (even before pressing ENTER) does not match the
+ * scientific or percentage format, the TextField will be highlighted.
  */
 public class NumericSpinner extends Spinner<Double> {
 
@@ -20,11 +19,14 @@ public class NumericSpinner extends Spinner<Double> {
 	private double min, max, stepSize;
 
 	/**
-	 * Constructs an {@link NumericSpinner}.
-	 * 
-	 * @param intOnly false if this spinner is allowed to consume doubles.
+	 * @param min     the minimum
+	 * @param max     the maximum
+	 * @param step    the step size
+	 * @param intOnly if this is an integral spinner
+	 * @param kwMap   the map from keywords to corresponding values
 	 */
-	public NumericSpinner(boolean intOnly, HashMap<String, Double> kwMap) {
+	public NumericSpinner(double min, double max, double step, boolean intOnly,
+			HashMap<String, Double> kwMap) {
 		super();
 		nh = new NumericHelper(this.getEditor(), this, intOnly, kwMap);
 		ObjectProperty<Double> num = nh.getNumberProperty();
@@ -42,17 +44,25 @@ public class NumericSpinner extends Spinner<Double> {
 				num.set(Math.min(curVal + steps * stepSize, max));
 			}
 		});
+		this.setMin(min);
+		this.setMax(max);
+		this.setStepSize(step);
+		this.setEditable(true);
 	}
 
-	public NumericSpinner(boolean intOnly) {
-		this(intOnly, null);
+	public NumericSpinner(double min, double max, double step, boolean intOnly) {
+		this(min, max, step, intOnly, null);
+	}
+
+	public NumericSpinner(double min, double max, double step) {
+		this(min, max, step, false);
 	}
 
 	/**
 	 * Constructs an {@link NumericSpinner}.
 	 */
 	public NumericSpinner() {
-		this(false);
+		this(0, 0, 0);
 	}
 
 	/**
