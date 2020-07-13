@@ -141,7 +141,7 @@ public class SettingsCtrl extends AbstractCtrl {
 
 				// update of UI components should be run from JFX thread
 				Platform.runLater(() -> {
-					binSizeSpinner.setDisable(!fullBinningCheckBox.isSelected());
+					binSizeSpinner.setDisable(fullBinningCheckBox.isSelected());
 					binningBusyProgressIndicator.setVisible(false);
 
 					requestUpdate();
