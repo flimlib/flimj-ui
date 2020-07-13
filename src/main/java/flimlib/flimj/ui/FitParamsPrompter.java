@@ -15,11 +15,11 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 import flimlib.flimj.FitParams;
+import flimlib.flimj.ui.controls.NumericSpinner;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -125,7 +125,8 @@ public final class FitParamsPrompter {
 			ltAxisBox.getItems().add(new Dimension(d));
 		ltAxisBox.getSelectionModel().select(ltAxis);
 
-		final Spinner<Double> timeBaseBox = new Spinner<>(0, 100, timeBase, 0.1);
+		final NumericSpinner timeBaseBox = new NumericSpinner(0.0, 10.0, 0.01);
+		timeBaseBox.getNumberProperty().set(timeBase / dataset.dimension(ltAxis));
 
 		final Button okButton = new Button("OK");
 		okButton.setDefaultButton(true);
@@ -153,7 +154,7 @@ public final class FitParamsPrompter {
 		// Create fit params and populate from final dialog values.
 
 		params.ltAxis = ltAxisBox.getSelectionModel().getSelectedIndex();
-		params.xInc = (float) (timeBaseBox.getValue() / dataset.dimension(params.ltAxis));
+		params.xInc = timeBaseBox.getNumberProperty().get().floatValue();
 
 		// Slice down to 3D, fixing positions of irrelevant dimensions.
 		@SuppressWarnings("unchecked")
