@@ -5,6 +5,10 @@ import java.util.List;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -81,8 +85,8 @@ public class PreviewCtrl extends AbstractCtrl {
 	/** The previous valid preview option (z, A, intensity, etc.) */
 	private String lastValidPreviewOption;
 
-	/** Used to save coordinates before switching between IRF selection and normal mode */
-	private int savedX, savedY;
+	/** Mirrors fp.isPickingIRF(). Its listeners handle IRF mode entering/exiting events */
+	private ObjectProperty<Boolean> pickingIRF;
 
 	/** The controller for the colorbar pop over */
 	public static class CBPopOverCtrl extends AbstractCtrl {
@@ -178,22 +182,38 @@ public class PreviewCtrl extends AbstractCtrl {
 		intensityDisplay = new PreviewImageDisplay(lClickPane, lCsr, intensityImageView);
 		resultDisplay = new PreviewImageDisplay(rClickPane, rCsr, resultImageView);
 
+		pickingIRF = new SimpleObjectProperty<>(false);
+
 		// make two int spinners
 		csrXSpinner.setStepSize(1);
 		csrXSpinner.setIntOnly(true);
 		csrYSpinner.setStepSize(1);
 		csrYSpinner.setIntOnly(true);
+
+		final ObjectProperty<Double> csrSpinnerX = csrXSpinner.getNumberProperty();
+		final ObjectProperty<Double> csrSpinnerY = csrYSpinner.getNumberProperty();
+		final ObjectProperty<Double> intensityDisplayX = intensityDisplay.getCursorXProperty();
+		final ObjectProperty<Double> intensityDisplayY = intensityDisplay.getCursorYProperty();
+		final ObjectProperty<Double> resultDisplayX = resultDisplay.getCursorXProperty();
+		final ObjectProperty<Double> resultDisplayY = resultDisplay.getCursorYProperty();
+
 		// updates cursor position info on spinner change
-		csrXSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
-			updateCsrPos(newVal.intValue(), csrYSpinner.getNumberProperty().get().intValue());
-		});
-		csrYSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
-			updateCsrPos(csrXSpinner.getNumberProperty().get().intValue(), newVal.intValue());
-		});
-		csrXSpinner.getNumberProperty().bindBidirectional(intensityDisplay.getCursorXProperty());
-		csrYSpinner.getNumberProperty().bindBidirectional(intensityDisplay.getCursorYProperty());
-		csrXSpinner.getNumberProperty().bindBidirectional(resultDisplay.getCursorXProperty());
-		csrYSpinner.getNumberProperty().bindBidirectional(resultDisplay.getCursorYProperty());
+		ChangeListener<Double> lCoordChangeListener = (obs, oldVal, newVal) -> {
+			updateCsrPos(intensityDisplayX.get().intValue(), intensityDisplayY.get().intValue(),
+					true);
+		};
+		intensityDisplayX.addListener(lCoordChangeListener);
+		intensityDisplayX.addListener(lCoordChangeListener);
+		ChangeListener<Double> rCoordChangeListener = (obs, oldVal, newVal) -> {
+			updateCsrPos(resultDisplayX.get().intValue(), resultDisplayY.get().intValue(),
+					pickingIRF.get());
+		};
+		resultDisplayX.addListener(rCoordChangeListener);
+		resultDisplayX.addListener(rCoordChangeListener);
+		csrSpinnerX.bindBidirectional(intensityDisplayX);
+		csrSpinnerY.bindBidirectional(intensityDisplayY);
+		csrSpinnerX.bindBidirectional(resultDisplayX);
+		csrSpinnerY.bindBidirectional(resultDisplayY);
 
 		// creates cb pop over
 		try {
@@ -262,29 +282,16 @@ public class PreviewCtrl extends AbstractCtrl {
 			}
 			asChoiceBox.setDisable(false);
 
-			// special cases
+			// entering and exiting IRF mode
 			if ("IRF Intensity".equals(showChoiceBox.getValue())) {
-				// restore cursor position in IRF mode from last time
-				int prevIRFX = savedX;
-				int prevIRFY = savedY;
-				// save cursor position in normal mode from now
-				savedX = csrXSpinner.getNumberProperty().get().intValue();
-				savedY = csrYSpinner.getNumberProperty().get().intValue();
 				fp.setIsPickingIRF(true);
-
-				updateCsrPos(prevIRFX, prevIRFY);
+				requestUpdate();
+				return;
 			} else if ("IRF Intensity".equals(oldVal)) {
-				// restore cursor position in preview (normal) mode from last time
-				int prevPreviewX = savedX;
-				int prevPreviewY = savedY;
-				// save cursor position in IRF mode from now
-				savedX = csrXSpinner.getNumberProperty().get().intValue();
-				savedY = csrYSpinner.getNumberProperty().get().intValue();
 				fp.setIsPickingIRF(false);
-
-				updateCsrPos(prevPreviewX, prevPreviewY);
+				requestUpdate();
+				return;
 			}
-
 			refreshResultImage();
 		});
 		asChoiceBox.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -306,14 +313,41 @@ public class PreviewCtrl extends AbstractCtrl {
 		// enabled if there is a show option
 		asChoiceBox.setDisable(true);
 
+		pickingIRF.addListener(new ChangeListener<Boolean>() {
+
+			private int savedIRFX, savedIRFY;
+
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+					Boolean newValue) {
+				if (newValue) {
+					// unbind result display
+					csrSpinnerX.unbindBidirectional(resultDisplayX);
+					csrSpinnerY.unbindBidirectional(resultDisplayY);
+					// restore cursor position in IRF mode from last time
+					resultDisplayX.set((double) savedIRFX);
+					resultDisplayY.set((double) savedIRFY);
+
+					fp.setPreviewPos(savedIRFX, savedIRFY, true);
+					return;
+				} else {
+					savedIRFX = resultDisplayX.get().intValue();
+					savedIRFY = resultDisplayY.get().intValue();
+
+					// rebind result display
+					resultDisplayX.set(csrSpinnerX.get());
+					resultDisplayY.set(csrSpinnerY.get());
+					csrSpinnerX.bindBidirectional(resultDisplayX);
+					csrSpinnerY.bindBidirectional(resultDisplayY);
+				}
+			}
+		});
+
 		colorizeResult = compositeResult = true;
 	}
 
 	@Override
 	protected void refresh(FitParams<FloatType> params, FitResults results) {
-		updateCsrPos(csrXSpinner.getNumberProperty().get().intValue(),
-				csrYSpinner.getNumberProperty().get().intValue());
-
 		long[] permutedCoordinates =
 				FitProcessor.swapOutLtAxis(new long[] {0, 1, 2}, params.ltAxis);
 		final int w = (int) results.intensityMap.dimension((int) permutedCoordinates[0]);
@@ -335,6 +369,8 @@ public class PreviewCtrl extends AbstractCtrl {
 			showChoiceBox.setValue(null);
 
 		refreshResultImage();
+
+		pickingIRF.set(fp.isPickingIRF());
 	}
 
 	@Override
@@ -392,8 +428,9 @@ public class PreviewCtrl extends AbstractCtrl {
 	 * 
 	 * @param x the new x value on the image
 	 * @param y the new y value on the image
+	 * @param irf whether the update is on trans or IRF coordinate
 	 */
-	private void updateCsrPos(int x, int y) {
+	private void updateCsrPos(int x, int y, boolean irf) {
 		if (updating) {
 			return;
 		}
@@ -403,7 +440,7 @@ public class PreviewCtrl extends AbstractCtrl {
 		csrXSpinner.getNumberProperty().set((double) x);
 		csrYSpinner.getNumberProperty().set((double) y);
 
-		fp.setPreviewPos(x, y, fp.isPickingIRF());
+		fp.setPreviewPos(x, y, irf);
 		requestUpdate();
 
 		updating = false;
