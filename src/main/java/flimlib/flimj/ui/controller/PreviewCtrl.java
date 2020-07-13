@@ -79,8 +79,8 @@ public class PreviewCtrl extends AbstractCtrl {
 	/** Flags designating how the result is colorized */
 	private boolean colorizeResult, compositeResult;
 
-	/** Circular update prevention */
-	private boolean updating;
+	/** True if l/rClickPane click handler has taken the update job */
+	private boolean clickUpdate;
 
 	/** The previous valid preview option (z, A, intensity, etc.) */
 	private String lastValidPreviewOption;
@@ -198,22 +198,38 @@ public class PreviewCtrl extends AbstractCtrl {
 		final ObjectProperty<Double> resultDisplayY = resultDisplay.getCursorYProperty();
 
 		// updates cursor position info on spinner change
-		ChangeListener<Double> lCoordChangeListener = (obs, oldVal, newVal) -> {
-			updateCsrPos(intensityDisplayX.get().intValue(), intensityDisplayY.get().intValue(),
-					true);
-		};
-		intensityDisplayX.addListener(lCoordChangeListener);
-		intensityDisplayX.addListener(lCoordChangeListener);
-		ChangeListener<Double> rCoordChangeListener = (obs, oldVal, newVal) -> {
-			updateCsrPos(resultDisplayX.get().intValue(), resultDisplayY.get().intValue(),
-					pickingIRF.get());
-		};
-		resultDisplayX.addListener(rCoordChangeListener);
-		resultDisplayX.addListener(rCoordChangeListener);
 		csrSpinnerX.bindBidirectional(intensityDisplayX);
 		csrSpinnerY.bindBidirectional(intensityDisplayY);
 		csrSpinnerX.bindBidirectional(resultDisplayX);
 		csrSpinnerY.bindBidirectional(resultDisplayY);
+
+		// handle spinner value changes, unless already handled by click handler below
+		ChangeListener<Double> spinnerChangeListener = (obs, oldVal, newVal) -> {
+			if (!clickUpdate)
+				updateCoords(intensityDisplayX, intensityDisplayY, false);
+		};
+		csrSpinnerX.addListener(spinnerChangeListener);
+		csrSpinnerY.addListener(spinnerChangeListener);
+
+		// handle pane click event
+		EventHandler<? super MouseEvent> lClickHandlerOld = lClickPane.getOnMouseClicked();
+		EventHandler<? super MouseEvent> rClickHandlerOld = rClickPane.getOnMouseClicked();
+		EventHandler<MouseEvent> paneClickHandler = event -> {
+			// disable x, y property change handling
+			clickUpdate = true;
+			// move cursor, update x, y property, etc.
+			if (event.getSource().equals(lClickPane)) {
+				lClickHandlerOld.handle(event);
+				updateCoords(intensityDisplayX, intensityDisplayY, false);
+			} else {
+				rClickHandlerOld.handle(event);
+				// reroute coordinate to irf setting
+				updateCoords(resultDisplayX, resultDisplayY, pickingIRF.get());
+			}
+			clickUpdate = false;
+		};
+		lClickPane.setOnMouseClicked(paneClickHandler);
+		rClickPane.setOnMouseClicked(paneClickHandler);
 
 		// creates cb pop over
 		try {
@@ -424,25 +440,18 @@ public class PreviewCtrl extends AbstractCtrl {
 	}
 
 	/**
-	 * Updates the cursor position info.
+	 * Updates the trans/IRF coordinates.
 	 * 
-	 * @param x the new x value on the image
-	 * @param y the new y value on the image
-	 * @param irf whether the update is on trans or IRF coordinate
+	 * @param xProperty the new x coordinate in pixels
+	 * @param yProperty the new y coordinate in pixels
+	 * @param irf       whether the update is on trans or IRF coordinate
 	 */
-	private void updateCsrPos(int x, int y, boolean irf) {
-		if (updating) {
-			return;
-		}
-		updating = true;
-
-		// coordinate is linked to the two PreviewImageDisplay's cursors
-		csrXSpinner.getNumberProperty().set((double) x);
-		csrYSpinner.getNumberProperty().set((double) y);
+	private void updateCoords(final ObjectProperty<Double> xProperty,
+			final ObjectProperty<Double> yProperty, final boolean irf) {
+		final int x = xProperty.get().intValue();
+		final int y = yProperty.get().intValue();
 
 		fp.setPreviewPos(x, y, irf);
 		requestUpdate();
-
-		updating = false;
 	}
 }
