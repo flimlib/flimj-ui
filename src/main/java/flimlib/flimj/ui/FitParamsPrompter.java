@@ -73,7 +73,7 @@ public final class FitParamsPrompter {
 		if (ltAxis < 0) ltAxis = nD - 1;
 
 		// discern the time increment
-		double timeBase = -1;
+		double timeBin = -1;
 		final Object scifioMetadataGlobal = //
 			dataset.getProperties().get("scifio.metadata.global");
 		if (scifioMetadataGlobal instanceof HasMetaTable) {
@@ -86,14 +86,14 @@ public final class FitParamsPrompter {
 				final int extLen = Math.min(extVals.length, extLbls.length);
 				for (int i = 0; i < extLen; i++) {
 					if ("t".equals(extLbls[i])) {
-						timeBase = Double.parseDouble(extVals[i]) * 1e9;
+						timeBin = Double.parseDouble(extVals[i]) * 1e9;
 						break;
 					}
 				}
 			}
 		}
-		if (timeBase < 0) timeBase = dataset.axis(ltAxis).calibratedValue(dataset.dimension(ltAxis));
-		if (timeBase < 0) timeBase = 10d;
+		if (timeBin < 0) timeBin = dataset.axis(ltAxis).calibratedValue(dataset.dimension(ltAxis));
+		if (timeBin < 0) timeBin = 10d;
 
 		// Ask the user to confirm the details.
 
@@ -125,8 +125,8 @@ public final class FitParamsPrompter {
 			ltAxisBox.getItems().add(new Dimension(d));
 		ltAxisBox.getSelectionModel().select(ltAxis);
 
-		final NumericSpinner timeBaseBox = new NumericSpinner(0.0, 10.0, 0.01);
-		timeBaseBox.getNumberProperty().set(timeBase / dataset.dimension(ltAxis));
+		final NumericSpinner timeBinBox = new NumericSpinner(0.0, 10.0, 0.01);
+		timeBinBox.getNumberProperty().set(timeBin / dataset.dimension(ltAxis));
 
 		final Button okButton = new Button("OK");
 		okButton.setDefaultButton(true);
@@ -137,8 +137,8 @@ public final class FitParamsPrompter {
 		grid.setVgap(10);
 		grid.add(new Text("Lifetime Axis"), 0, 0);
 		grid.add(ltAxisBox, 1, 0);
-		grid.add(new Text("Time Base (ns)"), 0, 1);
-		grid.add(timeBaseBox, 1, 1);
+		grid.add(new Text("Time Bin (ns)"), 0, 1);
+		grid.add(timeBinBox, 1, 1);
 
 		final VBox layout = new VBox(10);
 		layout.setAlignment(Pos.CENTER_RIGHT);
@@ -154,7 +154,7 @@ public final class FitParamsPrompter {
 		// Create fit params and populate from final dialog values.
 
 		params.ltAxis = ltAxisBox.getSelectionModel().getSelectedIndex();
-		params.xInc = timeBaseBox.getNumberProperty().get().floatValue();
+		params.xInc = timeBinBox.getNumberProperty().get().floatValue();
 
 		// Slice down to 3D, fixing positions of irrelevant dimensions.
 		@SuppressWarnings("unchecked")
