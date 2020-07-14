@@ -35,13 +35,15 @@ public class NumericSpinner extends Spinner<Double> {
 			@Override
 			public void decrement(int steps) {
 				double curVal = num.get();
-				num.set(Math.max(curVal - steps * stepSize, min));
+				num.set(Math.max(curVal - steps * NumericSpinner.this.stepSize,
+						NumericSpinner.this.min));
 			}
 
 			@Override
 			public void increment(int steps) {
 				double curVal = num.get();
-				num.set(Math.min(curVal + steps * stepSize, max));
+				num.set(Math.min(curVal + steps * NumericSpinner.this.stepSize,
+						NumericSpinner.this.max));
 			}
 		});
 		this.setMin(min);
@@ -62,7 +64,7 @@ public class NumericSpinner extends Spinner<Double> {
 	 * Constructs an {@link NumericSpinner}.
 	 */
 	public NumericSpinner() {
-		this(0, 0, 0);
+		this(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 1);
 	}
 
 	/**
