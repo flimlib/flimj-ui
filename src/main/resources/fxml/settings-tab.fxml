@@ -76,19 +76,8 @@
                             </FXCollections>
                           </items>
                         </ChoiceBox>
-                        <TextFlow textAlignment="RIGHT" GridPane.rowIndex="4">
-                          <children>
-                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="χ²">
-                              <font>
-                                <Font name="Cambria" size="12.0" />
-                              </font>
-                            </Text>
-                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" Target" />
-                          </children>
-                        </TextFlow>
-                        <NumericTextField fx:id="chisqTgtTextField" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Noise Model" GridPane.rowIndex="5" />
-                        <ChoiceBox fx:id="noiseChoiceBox" maxWidth="149.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Noise Model" GridPane.rowIndex="4" />
+                        <ChoiceBox fx:id="noiseChoiceBox" maxWidth="149.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
                           <items>
                             <FXCollections fx:factory="observableArrayList">
                               <NoiseType fx:value="NOISE_GAUSSIAN_FIT" />

@@ -60,9 +60,6 @@ public class SettingsCtrl extends AbstractCtrl {
 	private CheckBox fullBinningCheckBox;
 
 	@FXML
-	private NumericTextField chisqTgtTextField;
-
-	@FXML
 	private TextField chisqTextField;
 
 	@FXML
@@ -166,11 +163,6 @@ public class SettingsCtrl extends AbstractCtrl {
 			}
 		});
 
-		chisqTgtTextField.getNumberProperty().addListener((obs, oldVal, newVal) -> {
-			getParams().chisq_target = newVal.floatValue();
-			requestUpdate();
-		});
-
 		// CB's
 		noiseChoiceBox.setConverter(new StringConverter<NoiseType>() {
 			@Override
@@ -219,11 +211,9 @@ public class SettingsCtrl extends AbstractCtrl {
 			if (algo == FitType.Bayes) {
 				nCompChoiceBox.setValue(1);
 				nCompChoiceBox.setDisable(true);
-				chisqTgtTextField.setDisable(true);
 				noiseChoiceBox.setDisable(true);
 			} else {
 				nCompChoiceBox.setDisable(false);
-				chisqTgtTextField.setDisable(false);
 				noiseChoiceBox.setDisable(false);
 			}
 
@@ -345,7 +335,6 @@ public class SettingsCtrl extends AbstractCtrl {
 	public void refresh(FitParams<FloatType> params, FitResults results) {
 		iThreshSpinner.setMax(getOps().stats().max(results.intensityMap).getRealDouble());
 		iThreshSpinner.getNumberProperty().setValue((double) params.iThresh);
-		chisqTgtTextField.setText(Utils.prettyFmt(params.chisq_target));
 		noiseChoiceBox.setValue(params.noise);
 		nCompChoiceBox.setValue(params.nComp);
 		chisqTextField.setText(Utils.prettyFmt(results.chisq));
