@@ -185,8 +185,10 @@ public class PreviewCtrl extends AbstractCtrl {
 		pickingIRF = new SimpleObjectProperty<>(false);
 
 		// make two int spinners
+		csrXSpinner.setMin(0);
 		csrXSpinner.setStepSize(1);
 		csrXSpinner.setIntOnly(true);
+		csrYSpinner.setMin(0);
 		csrYSpinner.setStepSize(1);
 		csrYSpinner.setIntOnly(true);
 

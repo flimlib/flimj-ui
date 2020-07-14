@@ -112,7 +112,7 @@ public class SettingsCtrl extends AbstractCtrl {
 		paramPane.getChildren().removeIf(child -> GridPane.getRowIndex(child) > 0);
 
 		// numerical fields
-		// iThreshSpinner.setMin(0.0);
+		iThreshSpinner.setMin(0.0);
 		iThreshSpinner.setStepSize(1.0);
 		iThreshSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
 			FitParams<FloatType> params = getParams();
