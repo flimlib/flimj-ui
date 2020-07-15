@@ -181,9 +181,13 @@ public class FitProcessor {
 	}
 
 	public void updateFit() {
+		updateFit(true);
+	}
+
+	public void updateFit(boolean preview) {
 		// global estimate of taus
 		float[] globalParams = null;
-		if ("Global".equals(fitType)) {
+		if ("Global".equals(fitType) && preview) {
 			for (int i = 0; i < params.param.length; i++) {
 				// trigger rld for free parameters and taus
 				if (params.paramFree[i] || (i - 1) % 2 == 1) {
@@ -203,14 +207,19 @@ public class FitProcessor {
 
 		// wipe out initial values for free params and fix taus in global mode
 		for (int i = 0; i < params.param.length; i++) {
-			if ("Global".equals(fitType) && (i - 1) % 2 == 1) {
+			if ("Global".equals(fitType) && (i - 1) % 2 == 1 && preview) {
 				params.paramFree[i] = false;
 				params.param[i] = globalParams[i];
 			} else if (params.paramFree[i])
 				params.param[i] = Float.POSITIVE_INFINITY;
 		}
 
-		FitResults fr = (FitResults) ops.run("flim.fit" + fitType, params);
+		FitResults fr;
+		if ("Global".equals(fitType) && preview)
+			fr = (FitResults) ops.run("flim.fitLMA", params);
+		else
+			fr = (FitResults) ops.run("flim.fit" + fitType, params);
+
 		fr.intensityMap = this.results.intensityMap;
 		this.results = fr;
 	}
@@ -390,7 +399,7 @@ public class FitProcessor {
 			}
 		}
 
-		updateFit();
+		updateFit(false);
 
 		params.paramMap = previewParamMap;
 		params.transMap = previewTransMap;
