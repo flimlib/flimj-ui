@@ -39,6 +39,8 @@ public class Utils {
 	 */
 	public static String prettyFmt(Number val) {
 		double abs = Math.abs(val.doubleValue());
+		if (Double.isNaN(abs))
+			return "-";
 		DecimalFormat df = abs > 1e4 || (abs != 0 && abs < 1e-4) ? sciDf : normalDf;
 		return df.format(val);
 	}
