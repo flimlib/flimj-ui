@@ -233,6 +233,10 @@ public class FitProcessor {
 			allMask = true;
 		}
 		if (size != binRadius) {
+			// recalculate threshold to equalize per-pixel threshold
+			params.iThresh = Math.round((double) params.iThresh //
+					/ ((2 * binRadius + 1) * (2 * binRadius + 1))
+					* ((2 * size + 1) * (2 * size + 1)));
 			// invalidate cached
 			binnedTrans = null;
 			binRadius = size;
