@@ -388,6 +388,11 @@ public class FitProcessor {
 			binnedTrans = binRadius > 0
 					? ops.filter().convolve(origTrans, FlimOps.makeSquareKernel(binRadius * 2 + 1))
 					: origTrans;
+
+			// convolve may spit out small negative values that causes problem in e.g. log() in
+			// GCI_marquardt_compute_fn()
+			for (FloatType f : Views.iterable(binnedTrans))
+				f.set(Math.max(f.get(), 0));
 		}
 		// temporarily save trans and param maps for preview
 		RandomAccessibleInterval<FloatType> previewTransMap, previewParamMap;
