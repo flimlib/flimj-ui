@@ -1,6 +1,5 @@
 package flimlib.flimj.ui;
 
-import java.util.Iterator;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -13,7 +12,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
-import net.imglib2.IterableInterval;
+import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converters;
@@ -21,15 +20,34 @@ import net.imglib2.converter.RealLUTConverter;
 import net.imglib2.display.screenimage.awt.ARGBScreenImage;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.view.Views;
 
 /**
  * Manages a clickable image display in the Preview pannel.
  */
 public class PreviewImageDisplay {
 
+	/**
+	 * Interface for a location-aware image annotator to postprocess LUT-converted colors in
+	 * {@link PreviewImageDisplay#setImage()}.
+	 */
+	@FunctionalInterface
+	public static interface ImageAnnotator {
+
+		/**
+		 * Recolors the rendered pixel given a pointer to the source float value and the LUT
+		 * converted color. The value and color can be retrived directly from
+		 * <code>srcRA.get()</code> and <code>lutedRA.get()</code>. The implementation may refer to
+		 * the location through e.g. <code>srcRA.getPosition()</code>.
+		 * 
+		 * @param srcRA   the {@link RandomAccess} pointing at the value being converted
+		 * @param lutedRA the {@link RandomAccess} pointing at the converted color
+		 * @return the annotated color
+		 */
+		public ARGBType annotate(RandomAccess<FloatType> srcRA, RandomAccess<ARGBType> lutedRA);
+	}
+
 	/** Threshold of pixScale change that necessitates resampling */
-	static final private double RELOAD_THR = 1.5;
+	private static final double RELOAD_THR = 1.5;
 
 	/** The path to the logo image */
 	private static final String ICON_PATH = "img/logo.png";
@@ -67,6 +85,9 @@ public class PreviewImageDisplay {
 
 	/** The values */
 	private RandomAccessibleInterval<FloatType> rawImage;
+
+	/** The LUT-colored but unannotated image */
+	private RandomAccessibleInterval<ARGBType> coloredImage;
 
 	public PreviewImageDisplay(final Pane pane, final Group cursor, final ImageView view) {
 		this.clickPane = pane;
@@ -115,11 +136,11 @@ public class PreviewImageDisplay {
 	}
 
 	/**
-	 * @return The pixel cache, may be used by another display to composite the image
+	 * @return The LUT colored image, may be used by another display to composite the image
 	 * @see #setImage(RandomAccessibleInterval, RealLUTConverter, ARGBScreenImage)
 	 */
-	public ARGBScreenImage getArgbScreenImage() {
-		return screenImage;
+	public RandomAccessibleInterval<ARGBType> getColorImage() {
+		return coloredImage;
 	}
 
 	/**
@@ -139,16 +160,16 @@ public class PreviewImageDisplay {
 	}
 
 	/**
-	 * Shows an float valued image, posibly multiplied the color by another image of the same size.
-	 * If the first two arguments are <code>null</code>, the display will show the
+	 * Shows an float-valued image, colored by a converter and possibly annotated by a annotator. If
+	 * either of the first two arguments are <code>null</code>, the display will show the
 	 * {@link #PLACEHOLDER_IMAGE}.
 	 * 
-	 * @param src               The source image
-	 * @param converter         The LUT
-	 * @param composeBrightness The multiplier image, <code>null</code> to skip
+	 * @param src       The source image
+	 * @param converter The LUT converter
+	 * @param annotator The post-conversion processor functional
 	 */
 	public void setImage(final RandomAccessibleInterval<FloatType> src,
-			final RealLUTConverter<FloatType> converter, final ARGBScreenImage composeBrightness) {
+			final RealLUTConverter<FloatType> converter, final ImageAnnotator annotator) {
 		rawImage = src;
 
 		final int oldW = imgW;
@@ -167,30 +188,19 @@ public class PreviewImageDisplay {
 			screenImage = new ARGBScreenImage(imgW, imgH);
 
 		if (src != null && converter != null) {
-			IterableInterval<ARGBType> colored =
-					Converters.convert(Views.iterable(src), converter, new ARGBType());
+			coloredImage = Converters.convert(src, converter, new ARGBType());
 
-			// copy rendered src to screenImage
-			Iterator<ARGBType> dstItr = screenImage.iterator();
-			Iterator<ARGBType> srcItr = colored.iterator();
-			while (srcItr.hasNext() && dstItr.hasNext())
-				dstItr.next().set(srcItr.next().get());
+			// convert and annotate image
+			Cursor<ARGBType> dstCsr = screenImage.localizingCursor();
+			RandomAccess<ARGBType> lutedRA = coloredImage.randomAccess();
+			RandomAccess<FloatType> valRA = src.randomAccess();
+			while (dstCsr.hasNext()) {
+				dstCsr.fwd();
+				lutedRA.setPosition(dstCsr);
+				valRA.setPosition(dstCsr);
 
-			// multiply brightness by rgb from composeBrightness
-			if (composeBrightness != null) {
-				int[] lData = composeBrightness.getData();
-				int[] hData = screenImage.getData();
-
-				for (int i = 0; i < hData.length; i++) {
-					int h = hData[i];
-					int l = lData[i];
-
-					hData[i] = ARGBType.rgba( //
-							(int) (ARGBType.red(h) / 255.0 * ARGBType.red(l)),
-							(int) (ARGBType.green(h) / 255.0 * ARGBType.green(l)),
-							(int) (ARGBType.blue(h) / 255.0 * ARGBType.blue(l)),
-							(int) (ARGBType.alpha(h) / 255.0 * ARGBType.alpha(l)));
-				}
+				dstCsr.get().set(annotator != null ? //
+						annotator.annotate(valRA, lutedRA) : lutedRA.get());
 			}
 
 			view.setOpacity(1);

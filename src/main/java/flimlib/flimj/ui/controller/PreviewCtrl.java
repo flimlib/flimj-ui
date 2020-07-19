@@ -24,10 +24,11 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import net.imagej.display.ColorTables;
-
 import net.imglib2.IterableInterval;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealLUTConverter;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
@@ -62,19 +63,22 @@ public class PreviewCtrl extends AbstractCtrl {
 	@FXML
 	private ChoiceBox<String> showChoiceBox, asChoiceBox;
 
+	/** The converter for the intensity (left) image */
+	private static final RealLUTConverter<FloatType> INTENSITY_CONV =
+			new RealLUTConverter<>(0, 0, ColorTables.GRAYS);
+
+	/** The converter for the result (right) image */
+	private static final RealLUTConverter<FloatType> RESULTS_CNVTR =
+			new RealLUTConverter<>(0, 0, Utils.LIFETIME_LUT);
+
+	/** The red color to annotate below-threshold pixels */
+	private static final ARGBType LIFETIME_RED = new ARGBType(Utils.LIFETIME_LUT.argb(0));
+
 	/** The two image previews */
 	private PreviewImageDisplay intensityDisplay, resultDisplay;
 
 	/** The colorbar pop over controller */
 	private CBPopOverCtrl cbCtrl;
-
-	/** The converter for the intensity (left) image */
-	private final RealLUTConverter<FloatType> INTENSITY_CONV =
-			new RealLUTConverter<>(0, 0, ColorTables.GRAYS);
-
-	/** The converter for the result (right) image */
-	private final RealLUTConverter<FloatType> RESULTS_CNVTR =
-			new RealLUTConverter<>(0, 0, Utils.LIFETIME_LUT);
 
 	/** Flags designating how the result is colorized */
 	private boolean colorizeResult, compositeResult;
@@ -374,7 +378,7 @@ public class PreviewCtrl extends AbstractCtrl {
 		csrXSpinner.setMax(w - 1);
 		csrYSpinner.setMax(h - 1);
 
-		loadAnotatedIntensityImage(fp.getPreviewImg("Intensity"));
+		loadAnotatedIntensityImage(fp.getPreviewImg("Intensity"), params.iThresh);
 
 		// load new options
 		showChoiceBox.getItems().setAll(fp.getPreviewOptions());
@@ -413,14 +417,19 @@ public class PreviewCtrl extends AbstractCtrl {
 	}
 
 	/**
-	 * Annotates the intensity image and load to the on-screen Image.
+	 * Annotates the intensity image and load to the on-screen Image. Intensity below threshold is
+	 * colored {@link #LIFETIME_RED}.
 	 * 
 	 * @param intensity the intensity data
+	 * @param thresh    the threshold
 	 */
-	private void loadAnotatedIntensityImage(RandomAccessibleInterval<FloatType> intensity) {
+	private void loadAnotatedIntensityImage(final RandomAccessibleInterval<FloatType> intensity,
+			final float thresh) {
 		IterableInterval<FloatType> itr = Views.iterable(intensity);
 		INTENSITY_CONV.setMax(getOps().stats().max(itr).getRealDouble());
-		intensityDisplay.setImage(intensity, INTENSITY_CONV, null);
+
+		intensityDisplay.setImage(intensity, INTENSITY_CONV,
+				(srcRA, lutedRA) -> srcRA.get().get() < thresh ? LIFETIME_RED : lutedRA.get());
 	}
 
 	/**
@@ -437,8 +446,27 @@ public class PreviewCtrl extends AbstractCtrl {
 		RESULTS_CNVTR.setMin(getOps().stats().percentile(itr, 10).getRealDouble());
 		RESULTS_CNVTR.setMax(getOps().stats().percentile(itr, 90).getRealDouble());
 		RESULTS_CNVTR.setLUT(colorizeResult ? Utils.LIFETIME_LUT : ColorTables.GRAYS);
-		resultDisplay.setImage(result, RESULTS_CNVTR,
-				compositeResult ? intensityDisplay.getArgbScreenImage() : null);
+
+		final RandomAccess<ARGBType> coloredIntensityRA =
+				compositeResult ? intensityDisplay.getColorImage().randomAccess() : null;
+		resultDisplay.setImage(result, RESULTS_CNVTR, (srcRA, lutedRA) -> {
+			// regular convertion
+			ARGBType output = lutedRA.get();
+
+			// multiply by brightness from intensity
+			if (coloredIntensityRA != null) {
+				int l = coloredIntensityRA.setPositionAndGet(srcRA).get();
+				int h = output.get();
+
+				output.set(ARGBType.rgba( //
+						(int) (ARGBType.red(h) / 255.0 * ARGBType.red(l)),
+						(int) (ARGBType.green(h) / 255.0 * ARGBType.green(l)),
+						(int) (ARGBType.blue(h) / 255.0 * ARGBType.blue(l)),
+						(int) (ARGBType.alpha(h) / 255.0 * ARGBType.alpha(l))));
+			}
+
+			return output;
+		});
 	}
 
 	/**
