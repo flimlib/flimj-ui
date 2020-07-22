@@ -2,6 +2,7 @@
 
 <?language JavaScript?>
 <?import javafx.geometry.Insets ?>
+<?import javafx.geometry.Rectangle2D ?>
 <?import javafx.scene.Cursor ?>
 <?import javafx.scene.Group ?>
 <?import javafx.scene.chart.LineChart ?>
@@ -10,6 +11,8 @@
 <?import javafx.scene.control.TextField ?>
 <?import javafx.scene.control.TitledPane ?>
 <?import javafx.scene.control.ToggleButton ?>
+<?import javafx.scene.effect.BoxBlur ?>
+<?import javafx.scene.image.ImageView ?>
 <?import javafx.scene.layout.AnchorPane ?>
 <?import javafx.scene.layout.ColumnConstraints ?>
 <?import javafx.scene.layout.GridPane ?>
@@ -111,9 +114,18 @@
                 <fx:define>
                   <ToggleButton fx:id="linTB" text="Linear" userData="lin" />
                   <ToggleButton fx:id="logTB" text="Logarithm" userData="log" />
+                  <BoxBlur fx:id="frostEffect" width="30.0" height="30.0" iterations="2" />
                 </fx:define>
                 <StackPane alignment="CENTER">
                   <children>
+                    <ImageView fx:id="frostImageView" fitWidth="${sideAnchorPane.width}" fitHeight="${sideAnchorPane.height}" preserveRatio="false">
+                      <viewport>
+                        <Rectangle2D />
+                      </viewport>
+                      <effect>
+                        <fx:reference source="frostEffect" />
+                      </effect>
+                    </ImageView>
                     <AnchorPane fx:id="sideAnchorPane">
                       <children>
                         <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

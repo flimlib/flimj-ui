@@ -9,12 +9,16 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import org.controlsfx.control.HiddenSidesPane;
 import org.controlsfx.control.SegmentedButton;
@@ -67,6 +71,9 @@ public class PlotCtrl extends AbstractCtrl {
 
 	@FXML
 	private SegmentedButton fitYScaleSB;
+
+	@FXML
+	private ImageView frostImageView;
 
 	/** cursor positions */
 	private ObjectProperty<Double> lCsrPos, rCsrPos;
@@ -148,12 +155,36 @@ public class PlotCtrl extends AbstractCtrl {
 		// dummy
 		prefixSum = new float[1];
 
+		// frost glass effect for plot settings:
+		// https://en.it1352.com/article/f2643fc245cd47d78c0a98e13068207f.html
+		// TL;DR: Snapshot covered portion, crop to size of the pannel and set as background using
+		// StackPane with blur effect
+
+		// resize internal Image on ImageView size change
+		ChangeListener<Number> frostResizeListener = (obs, oldVal, newVal) -> {
+			int newWidth = (int) frostImageView.getFitWidth();
+			int newHeight = (int) frostImageView.getFitHeight();
+			if (newWidth > 0 && newHeight > 0) {
+				frostImageView.setImage(new WritableImage(newWidth, newHeight));
+			}
+		};
+		frostImageView.fitWidthProperty().addListener(frostResizeListener);
+		frostImageView.fitHeightProperty().addListener(frostResizeListener);
+		SnapshotParameters sp = new SnapshotParameters();
+
 		// recalculate trigger distance on sliding (otherwise clicking on controls on side pane may
 		// cause it to defocus and send the pane back)
 		final double triggerDistance = plotAreaSidePane.getTriggerDistance();
 		plotAreaSidePane.getRight().boundsInParentProperty().addListener((obs, oldVal, newVal) -> {
 			final double slideDist = Math.abs(newVal.getMinX() - plotAreaSidePane.getWidth());
 			plotAreaSidePane.setTriggerDistance(Math.max(slideDist, triggerDistance));
+
+			// render the covered portion into the background image
+			// HACK: move left boundary by blur radius (defined in plot-tab.fxml) to prevent
+			// location shift
+			sp.setViewport(new Rectangle2D(newVal.getMinX() + 30, 0, newVal.getWidth(),
+					newVal.getHeight()));
+			plotAreaSidePane.getContent().snapshot(sp, (WritableImage) frostImageView.getImage());
 		});
 
 		// change y scale on toggle
