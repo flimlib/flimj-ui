@@ -153,8 +153,6 @@ public class FLIMJCommand implements Command {
 		frame.setIconImages(getIcons(FLIMJCommand.class.getClassLoader().getResource(ICON_PATH)));
 
 		frame.pack();
-		// HACK: add extra margins to correctly dispay the whole scene
-		frame.setSize(frame.getWidth() + 20, frame.getHeight() + 50);
 		// center window
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
