@@ -9,16 +9,21 @@
 <?import javafx.scene.control.Spinner ?>
 <?import javafx.scene.control.TextField ?>
 <?import javafx.scene.control.TitledPane ?>
+<?import javafx.scene.control.ToggleButton ?>
 <?import javafx.scene.layout.AnchorPane ?>
 <?import javafx.scene.layout.ColumnConstraints ?>
 <?import javafx.scene.layout.GridPane ?>
 <?import javafx.scene.layout.Pane ?>
 <?import javafx.scene.layout.RowConstraints ?>
+<?import javafx.scene.layout.StackPane ?>
 <?import javafx.scene.layout.VBox ?>
 <?import javafx.scene.shape.Circle ?>
 <?import javafx.scene.shape.Line ?>
 <?import javafx.scene.text.Text ?>
+<?import flimlib.flimj.ui.VariableScaleAxis ?>
 <?import flimlib.flimj.ui.controls.NumericSpinner ?>
+<?import org.controlsfx.control.HiddenSidesPane ?>
+<?import org.controlsfx.control.SegmentedButton ?>
 
 <AnchorPane stylesheets="@../css/plot.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flimlib.flimj.ui.controller.PlotCtrl">
   <children>
@@ -26,79 +31,113 @@
       <content>
         <VBox styleClass="flim-tab-vbox">
           <children>
-            <VBox styleClass="tab-pane-list-vbox" VBox.vgrow="ALWAYS">
-              <children>
-                <AnchorPane prefHeight="250.0" VBox.vgrow="ALWAYS">
+            <HiddenSidesPane fx:id="plotAreaSidePane" triggerDistance="50.0">
+              <content>
+                <VBox styleClass="tab-pane-list-vbox" VBox.vgrow="ALWAYS">
                   <children>
-                    <LineChart fx:id="fitPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                      <xAxis>
-                        <NumberAxis label="ns" prefHeight="44.0" prefWidth="451.0" side="TOP" />
-                      </xAxis>
-                      <yAxis>
-                        <NumberAxis label="Fit" side="LEFT" tickLabelGap="1.0" tickLabelRotation="-90.0" tickUnit="1.0" />
-                      </yAxis>
-                      <padding>
-                        <Insets bottom="1.0" left="1.0" right="10.0" top="1.0" />
-                      </padding>
-                    </LineChart>
-                    <AnchorPane fx:id="fitPlotAreaPane" layoutX="62.0" layoutY="56.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="62.0" AnchorPane.rightAnchor="19.0" AnchorPane.topAnchor="56.0">
+                    <AnchorPane prefHeight="250.0" VBox.vgrow="ALWAYS">
                       <children>
-                        <Group fx:id="lCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="0.0">
+                        <LineChart fx:id="fitPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <xAxis>
+                            <NumberAxis label="ns" prefHeight="44.0" prefWidth="451.0" side="TOP" />
+                          </xAxis>
+                          <yAxis>
+                            <VariableScaleAxis fx:id="fitPlotYAxis" label="Fit" side="LEFT" tickLabelGap="1.0" tickLabelRotation="-90.0" />
+                          </yAxis>
+                          <padding>
+                            <Insets bottom="1.0" left="1.0" right="10.0" top="1.0" />
+                          </padding>
+                        </LineChart>
+                        <AnchorPane fx:id="fitPlotAreaPane" layoutX="62.0" layoutY="56.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="62.0" AnchorPane.rightAnchor="19.0" AnchorPane.topAnchor="56.0">
                           <children>
-                            <Line fx:id="lCsrBar" endY="135.0" startY="0.0" />
-                            <Circle fx:id="lCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+                            <Group fx:id="lCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="0.0">
+                              <children>
+                                <Line fx:id="lCsrBar" endY="135.0" startY="0.0" />
+                                <Circle fx:id="lCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+                              </children>
+                              <cursor>
+                                <Cursor fx:constant="H_RESIZE" />
+                              </cursor>
+                            </Group>
+                            <Group fx:id="rCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="440.0">
+                              <children>
+                                <Line fx:id="rCsrBar" endY="135.0" startY="0.0" />
+                                <Circle fx:id="rCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+                              </children>
+                              <cursor>
+                                <Cursor fx:constant="H_RESIZE" />
+                              </cursor>
+                            </Group>
                           </children>
-                          <cursor>
-                            <Cursor fx:constant="H_RESIZE" />
-                          </cursor>
-                        </Group>
-                        <Group fx:id="rCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="440.0">
+                        </AnchorPane>
+                      </children>
+                      <VBox.margin>
+                        <Insets />
+                      </VBox.margin>
+                    </AnchorPane>
+                    <AnchorPane maxHeight="200.0" minHeight="50.0" prefHeight="150.0" VBox.vgrow="SOMETIMES">
+                      <children>
+                        <LineChart fx:id="resPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <xAxis>
+                            <NumberAxis />
+                          </xAxis>
+                          <yAxis>
+                            <NumberAxis label="Res" lowerBound="-10.0" side="LEFT" tickLabelGap="1.0" tickLabelRotation="-90.0" tickUnit="1.0" upperBound="10.0" />
+                          </yAxis>
+                          <padding>
+                            <Insets bottom="1.0" left="1.0" right="10.0" top="1.0" />
+                          </padding>
+                        </LineChart>
+                        <AnchorPane fx:id="resPlotAreaPane" layoutX="62.0" layoutY="11.0" AnchorPane.bottomAnchor="37.0" AnchorPane.leftAnchor="62.0" AnchorPane.rightAnchor="19.0" AnchorPane.topAnchor="11.0">
                           <children>
-                            <Line fx:id="rCsrBar" endY="135.0" startY="0.0" />
-                            <Circle fx:id="rCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+                            <Group fx:id="lCsr_res" translateX="0.0">
+                              <children>
+                                <Line fx:id="lCsrBar_res" endY="60.0" startY="0.0" />
+                              </children>
+                            </Group>
+                            <Group fx:id="rCsr_res" translateX="440.0">
+                              <children>
+                                <Line fx:id="rCsrBar_res" endY="60.0" startY="0.0" />
+                              </children>
+                            </Group>
                           </children>
-                          <cursor>
-                            <Cursor fx:constant="H_RESIZE" />
-                          </cursor>
-                        </Group>
+                        </AnchorPane>
                       </children>
                     </AnchorPane>
                   </children>
-                  <VBox.margin>
-                    <Insets />
-                  </VBox.margin>
-                </AnchorPane>
-                <AnchorPane maxHeight="200.0" minHeight="50.0" prefHeight="150.0" VBox.vgrow="SOMETIMES">
+                </VBox>
+              </content>
+              <right>
+                <fx:define>
+                  <ToggleButton fx:id="linTB" text="Linear" userData="lin" />
+                  <ToggleButton fx:id="logTB" text="Logarithm" userData="log" />
+                </fx:define>
+                <StackPane alignment="CENTER">
                   <children>
-                    <LineChart fx:id="resPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                      <xAxis>
-                        <NumberAxis />
-                      </xAxis>
-                      <yAxis>
-                        <NumberAxis label="Res" lowerBound="-10.0" side="LEFT" tickLabelGap="1.0" tickLabelRotation="-90.0" tickUnit="1.0" upperBound="10.0" />
-                      </yAxis>
-                      <padding>
-                        <Insets bottom="1.0" left="1.0" right="10.0" top="1.0" />
-                      </padding>
-                    </LineChart>
-                    <AnchorPane fx:id="resPlotAreaPane" layoutX="62.0" layoutY="11.0" AnchorPane.bottomAnchor="37.0" AnchorPane.leftAnchor="62.0" AnchorPane.rightAnchor="19.0" AnchorPane.topAnchor="11.0">
+                    <AnchorPane fx:id="sideAnchorPane">
                       <children>
-                        <Group fx:id="lCsr_res" translateX="0.0">
+                        <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <columnConstraints>
+                            <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints vgrow="SOMETIMES" />
+                          </rowConstraints>
                           <children>
-                            <Line fx:id="lCsrBar_res" endY="60.0" startY="0.0" />
+                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Y Scale:" />
+                            <SegmentedButton fx:id="fitYScaleSB" GridPane.columnIndex="1" />
                           </children>
-                        </Group>
-                        <Group fx:id="rCsr_res" translateX="440.0">
-                          <children>
-                            <Line fx:id="rCsrBar_res" endY="60.0" startY="0.0" />
-                          </children>
-                        </Group>
+                        </GridPane>
                       </children>
+                      <padding>
+                        <Insets topRightBottomLeft="10.0" />
+                      </padding>
                     </AnchorPane>
                   </children>
-                </AnchorPane>
-              </children>
-            </VBox>
+                </StackPane>
+              </right>
+            </HiddenSidesPane>
             <AnchorPane styleClass="tab-toolbar" VBox.vgrow="NEVER">
               <children>
                 <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

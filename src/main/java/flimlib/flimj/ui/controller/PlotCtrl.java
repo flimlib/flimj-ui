@@ -16,11 +16,13 @@ import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import org.controlsfx.control.HiddenSidesPane;
+import org.controlsfx.control.SegmentedButton;
 import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
 import flimlib.flimj.ui.Utils;
+import flimlib.flimj.ui.VariableScaleAxis;
 import flimlib.flimj.ui.controls.NumericSpinner;
-
 import net.imglib2.type.numeric.real.FloatType;
 
 /**
@@ -56,6 +58,15 @@ public class PlotCtrl extends AbstractCtrl {
 
 	@FXML
 	private TextField phtnCntTextField;
+
+	@FXML
+	private VariableScaleAxis fitPlotYAxis;
+
+	@FXML
+	private HiddenSidesPane plotAreaSidePane;
+
+	@FXML
+	private SegmentedButton fitYScaleSB;
 
 	/** cursor positions */
 	private ObjectProperty<Double> lCsrPos, rCsrPos;
@@ -136,6 +147,25 @@ public class PlotCtrl extends AbstractCtrl {
 
 		// dummy
 		prefixSum = new float[1];
+
+		// recalculate trigger distance on sliding (otherwise clicking on controls on side pane may
+		// cause it to defocus and send the pane back)
+		final double triggerDistance = plotAreaSidePane.getTriggerDistance();
+		plotAreaSidePane.getRight().boundsInParentProperty().addListener((obs, oldVal, newVal) -> {
+			final double slideDist = Math.abs(newVal.getMinX() - plotAreaSidePane.getWidth());
+			plotAreaSidePane.setTriggerDistance(Math.max(slideDist, triggerDistance));
+		});
+
+		// change y scale on toggle
+		fitPlotYAxis.setLogScale(false);
+		fitYScaleSB.getToggleGroup().selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
+			// disalbe diselection
+			// see https://stackoverflow.com/a/50667161
+			if (newVal == null)
+				oldVal.setSelected(true);
+			else if (oldVal != null)
+				fitPlotYAxis.setLogScale("log".equals(newVal.getUserData()));
+		});
 	}
 
 	@Override

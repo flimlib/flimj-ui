@@ -17,6 +17,10 @@ function init() {
 	rCsrBar.endYProperty().bind(fitPlotAreaPane.heightProperty().subtract(1));
 	lCsrBar_res.endYProperty().bind(resPlotAreaPane.heightProperty().subtract(1));
 	rCsrBar_res.endYProperty().bind(resPlotAreaPane.heightProperty().subtract(1));
+
+	// link the two toggle buttons to segmented button
+	fitYScaleSB.getButtons().addAll(linTB, logTB);
+	linTB.setSelected(true)
 }
 init();
 
