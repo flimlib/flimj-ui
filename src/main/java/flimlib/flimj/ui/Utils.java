@@ -46,10 +46,10 @@ public class Utils {
 	}
 
 	/**
-	 * TODO
+	 * Formats the value with the default scientific format.
 	 * 
 	 * @param val the value to format
-	 * @return
+	 * @return the formated value
 	 */
 	public static String percentFmt(Number val) {
 		return percentDf.format(val.doubleValue());

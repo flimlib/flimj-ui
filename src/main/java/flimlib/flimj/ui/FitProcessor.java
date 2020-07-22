@@ -174,6 +174,8 @@ public class FitProcessor {
 	}
 
 	/**
+	 * @param <S> Service type
+	 * @param c   the service class
 	 * @return the SciJava service
 	 */
 	public <S extends Service> S getService(final Class<S> c) {

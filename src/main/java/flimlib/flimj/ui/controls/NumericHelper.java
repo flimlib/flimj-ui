@@ -40,6 +40,11 @@ public class NumericHelper {
 
 	/**
 	 * Constructs an {@link NumericHelper}.
+	 * 
+	 * @param editor  the text field to harvest input
+	 * @param control the control to bind to
+	 * @param intOnly <code>true</code> if accepts integer only
+	 * @param kwMap   the map between string keywords and corresponding numeric values
 	 */
 	public NumericHelper(TextField editor, Control control, boolean intOnly,
 			HashMap<String, Double> kwMap) {

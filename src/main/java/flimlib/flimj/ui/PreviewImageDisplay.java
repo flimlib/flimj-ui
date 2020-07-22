@@ -28,7 +28,7 @@ public class PreviewImageDisplay {
 
 	/**
 	 * Interface for a location-aware image annotator to postprocess LUT-converted colors in
-	 * {@link PreviewImageDisplay#setImage()}.
+	 * {@link PreviewImageDisplay#setImage}.
 	 */
 	@FunctionalInterface
 	public static interface ImageAnnotator {
@@ -137,7 +137,7 @@ public class PreviewImageDisplay {
 
 	/**
 	 * @return The LUT colored image, may be used by another display to composite the image
-	 * @see #setImage(RandomAccessibleInterval, RealLUTConverter, ARGBScreenImage)
+	 * @see #setImage
 	 */
 	public RandomAccessibleInterval<ARGBType> getColorImage() {
 		return coloredImage;

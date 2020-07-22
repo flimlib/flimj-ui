@@ -43,6 +43,8 @@ public final class FitParamsPrompter {
 	 * @param dataset The {@link Dataset} from which to infer default values.
 	 * @param position The position at which to slice the dataset, if
 	 *          dimensionality is greater than 3D.
+	 * @param <T> Dataset data type
+	 * @return <code>true</code> if the operation succeeds
 	 */
 	public static <T extends RealType<T>> boolean populate(
 		final FitParams<FloatType> params, final Dataset dataset,

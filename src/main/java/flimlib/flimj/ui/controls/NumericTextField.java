@@ -20,10 +20,11 @@ public class NumericTextField extends TextField {
 	 * Constructs an {@link NumericTextField}.
 	 * 
 	 * @param intOnly false if this spinner is allowed to consume doubles.
+	 * @param kwMap   the map between string keywords and corresponding numeric values
 	 */
-	public NumericTextField(boolean intOnly, HashMap<String, Double> kwmMap) {
+	public NumericTextField(boolean intOnly, HashMap<String, Double> kwMap) {
 		super();
-		nh = new NumericHelper(this, this, intOnly, kwmMap);
+		nh = new NumericHelper(this, this, intOnly, kwMap);
 	}
 
 	public NumericTextField(boolean intOnly) {
