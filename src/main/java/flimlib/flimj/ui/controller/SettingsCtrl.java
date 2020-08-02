@@ -114,6 +114,8 @@ public class SettingsCtrl extends AbstractCtrl {
 		iThreshSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
 			FitParams<FloatType> params = getParams();
 			params.iThresh = newVal.floatValue();
+			// recalculate global trans for pixels above threshold
+			fp.invalidateGlobalTrans();
 			// turn off estimate based on percentage
 			// otherwise user's setting iThresh = 0 triggers that
 			params.iThreshPercent = params.iThresh >= 0 ? -1 : 5;

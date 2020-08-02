@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.imagej.ops.OpService;
+import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
@@ -50,7 +51,7 @@ public class FitProcessor {
 
 	private FitResults results;
 
-	private boolean isPickingIRF;
+	private boolean isPickingIRF, allMask;
 
 	private RandomAccessibleInterval<FloatType> origTrans, binnedTrans, origIntensity;
 
@@ -190,6 +191,7 @@ public class FitProcessor {
 		// global estimate of taus
 		float[] globalParams = null;
 		if ("Global".equals(fitType) && preview) {
+			updateGlobalTrans();
 			for (int i = 0; i < params.param.length; i++) {
 				// trigger rld for free parameters and taus
 				if (params.paramFree[i] || (i - 1) % 2 == 1) {
@@ -205,6 +207,13 @@ public class FitProcessor {
 			for (int i = 0; i < params.trans.length; i++) {
 				params.trans[i] = pixTrans[i];
 			}
+		}
+
+		// use globalTrans as trans in allMask mode
+		if (allMask) {
+			updateGlobalTrans();
+			for (int i = 0; i < params.trans.length; i++)
+				params.trans[i] = globalTrans[i];
 		}
 
 		// wipe out initial values for free params and fix taus in global mode
@@ -227,7 +236,7 @@ public class FitProcessor {
 	}
 
 	public void setBinning(int size) {
-		boolean allMask = false;
+		allMask = false;
 		if (size == -1) {
 			// FIXME: divide by 2 after https://github.com/imagej/imagej-ops/issues/628 is fixed
 			size = (int) Math.max(origIntensity.dimension(axisOrder[0]),
@@ -267,13 +276,6 @@ public class FitProcessor {
 				fitType = "Global";
 				fitFunc = MULTI_EXP;
 				nParam = 2 * params.nComp + 1;
-
-				// one-time loading of binned trans
-				if (globalTrans == null) {
-					globalTrans = new float[params.trans.length];
-					fillTrans(origTrans, globalTrans, 0, 0, axisOrder,
-							(int) origTrans.dimension(0));
-				}
 				break;
 
 			case Bayes:
@@ -357,7 +359,12 @@ public class FitProcessor {
 		} else {
 			previewX = x;
 			previewY = y;
-			fillTrans(origTrans, params.trans, x, y, axisOrder, binRadius);
+			if (allMask) {
+				updateGlobalTrans();
+				for (int i = 0; i < params.trans.length; i++)
+					params.trans[i] = globalTrans[i];
+			} else
+				fillTrans(origTrans, params.trans, x, y, axisOrder, binRadius);
 		}
 	}
 
@@ -484,6 +491,37 @@ public class FitProcessor {
 				break;
 		}
 		return null;
+	}
+
+	/**
+	 * Force recalculate <code>globalTrans</code> when required. Called upon e.g. intensity
+	 * threshold change.
+	 */
+	public void invalidateGlobalTrans() {
+		globalTrans = null;
+	}
+
+	/**
+	 * Recalculates <code>globalTrans</code> if for the first time or when it is invalid.
+	 */
+	private void updateGlobalTrans() {
+		if (globalTrans == null) {
+			globalTrans = new float[params.trans.length];
+
+			// sum up trans values whose intensity is above threshold
+			Cursor<FloatType> intensityCsr = Views.iterable(origIntensity).localizingCursor();
+			RandomAccess<FloatType> transRA = origTrans.randomAccess();
+			while (intensityCsr.hasNext()) {
+				if (intensityCsr.next().get() < params.iThresh)
+					continue;
+
+				// origIntensity is 3D
+				transRA.setPosition(intensityCsr);
+
+				for (int i = 0; i < globalTrans.length; i++, transRA.fwd(params.ltAxis))
+					globalTrans[i] += transRA.get().get();
+			}
+		}
 	}
 
 	/**
