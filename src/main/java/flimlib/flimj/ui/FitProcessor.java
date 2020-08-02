@@ -364,17 +364,19 @@ public class FitProcessor {
 	private static void fillTrans(RandomAccessibleInterval<FloatType> transMap, float[] transArr,
 			int x, int y, final int[] axisOrder, int binRadius) {
 
-		RandomAccess<FloatType> ra = Views.extendZero(transMap).randomAccess();
-		int[] coord = new int[3];
-		coord[axisOrder[0]] = x - binRadius;
-		coord[axisOrder[1]] = y - binRadius;
+		final RandomAccess<FloatType> ra = Views.extendZero(transMap).randomAccess();
+		final int[] coord = new int[3];
+		final int X = axisOrder[0];
+		final int Y = axisOrder[1];
+		coord[X] = x - binRadius;
+		coord[Y] = y - binRadius;
 		ra.setPosition(coord);
 		for (int t = 0; t < transArr.length; t++)
 			transArr[t] = 0;
-		for (int i = 0; i < 2 * binRadius + 1; i++, ra.fwd(axisOrder[0])) {
+		for (int i = 0; i < 2 * binRadius + 1; i++, ra.fwd(X)) {
 			// reset y
-			ra.setPosition(coord[axisOrder[1]], axisOrder[1]);
-			for (int j = 0; j < 2 * binRadius + 1; j++, ra.fwd(axisOrder[1])) {
+			ra.setPosition(coord[Y], Y);
+			for (int j = 0; j < 2 * binRadius + 1; j++, ra.fwd(Y)) {
 				// reset t
 				ra.setPosition(0, axisOrder[2]);
 				for (int t = 0; t < transArr.length; t++, ra.fwd(axisOrder[2]))
