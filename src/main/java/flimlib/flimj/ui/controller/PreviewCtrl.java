@@ -24,10 +24,14 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import net.imagej.display.ColorTables;
+import net.imagej.ops.map.MapViewRAIToRAI;
+import net.imagej.ops.special.computer.AbstractUnaryComputerOp;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealLUTConverter;
+import net.imglib2.roi.Regions;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
@@ -72,7 +76,10 @@ public class PreviewCtrl extends AbstractCtrl {
 			new RealLUTConverter<>(0, 0, Utils.LIFETIME_LUT);
 
 	/** The red color to annotate below-threshold pixels */
-	private static final ARGBType LIFETIME_RED = new ARGBType(Utils.LIFETIME_LUT.argb(0));
+	private static final ARGBType BELOW_THR_RED = new ARGBType(Utils.LIFETIME_LUT.argb(0));
+
+	/** The black color to annotate below-threshold pixels */
+	private static final ARGBType BELOW_THR_BLK = new ARGBType(ColorTables.GRAYS.argb(0));
 
 	/** The two image previews */
 	private PreviewImageDisplay intensityDisplay, resultDisplay;
@@ -413,12 +420,12 @@ public class PreviewCtrl extends AbstractCtrl {
 			resultDisplay.setImage(null, null, null);
 			return;
 		}
-		loadAnotatedResultsImage(fp.getPreviewImg(showOption), colorizeResult, compositeResult);
+		loadAnotatedResultsImage(fp.getPreviewImg(showOption));
 	}
 
 	/**
 	 * Annotates the intensity image and load to the on-screen Image. Intensity below threshold is
-	 * colored {@link #LIFETIME_RED}.
+	 * colored {@link #BELOW_THR_RED}.
 	 * 
 	 * @param intensity the intensity data
 	 * @param thresh    the threshold
@@ -429,22 +436,37 @@ public class PreviewCtrl extends AbstractCtrl {
 		INTENSITY_CONV.setMax(getOps().stats().max(itr).getRealDouble());
 
 		intensityDisplay.setImage(intensity, INTENSITY_CONV,
-				(srcRA, lutedRA) -> srcRA.get().get() < thresh ? LIFETIME_RED : lutedRA.get());
+				(srcRA, lutedRA) -> srcRA.get().get() < thresh ? BELOW_THR_RED : lutedRA.get());
 	}
 
 	/**
 	 * Annotates the result image and load to the on-screen Image.
 	 * 
-	 * @param result    the result data
-	 * @param color     {@code true} if LUT should be applied
-	 * @param composite {@code true} if the image is to be composed with intensity
+	 * @param result the result data
 	 */
-	private void loadAnotatedResultsImage(RandomAccessibleInterval<FloatType> result, boolean color,
-			boolean composite) {
-		IterableInterval<FloatType> itr = Views.iterable(result);
-		// TODO a more sensible range
-		RESULTS_CNVTR.setMin(getOps().stats().percentile(itr, 10).getRealDouble());
-		RESULTS_CNVTR.setMax(getOps().stats().percentile(itr, 90).getRealDouble());
+	@SuppressWarnings("unchecked")
+	private void loadAnotatedResultsImage(RandomAccessibleInterval<FloatType> result) {
+		final RandomAccessibleInterval<FloatType> fitStatus = fp.getPreviewImg("Fit Status");
+		final RandomAccess<FloatType> fitStatusRA = 
+				fitStatus != null ? fitStatus.randomAccess() : null;
+
+		IterableInterval<FloatType> itr = null;
+		if (fitStatus != null) {
+			// iterate over good fits only
+			RandomAccessibleInterval<BitType> mask =
+					(RandomAccessibleInterval<BitType>) getOps().run(MapViewRAIToRAI.class,
+							fitStatus, new AbstractUnaryComputerOp<FloatType, BitType>() {
+								@Override
+								public void compute(FloatType input, BitType output) {
+									output.set(input.get() == 0);
+								}
+							}, new BitType());
+			itr = Regions.sampleWithRandomAccessible(mask, result);
+		} else
+			itr = Views.iterable(result);
+
+		RESULTS_CNVTR.setMin(getOps().stats().percentile(itr, 5).getRealDouble());
+		RESULTS_CNVTR.setMax(getOps().stats().percentile(itr, 95).getRealDouble());
 		RESULTS_CNVTR.setLUT(colorizeResult ? Utils.LIFETIME_LUT : ColorTables.GRAYS);
 
 		final RandomAccess<ARGBType> coloredIntensityRA =
@@ -452,6 +474,14 @@ public class PreviewCtrl extends AbstractCtrl {
 		resultDisplay.setImage(result, RESULTS_CNVTR, (srcRA, lutedRA) -> {
 			// regular convertion
 			ARGBType output = lutedRA.get();
+
+			int status = FitResults.RET_UNKNOWN;
+			if (fitStatusRA != null)
+				status = (int) fitStatusRA.setPositionAndGet(srcRA).get();
+
+			// below-thresh pixels
+			if (status == FitResults.RET_INTENSITY_BELOW_THRESH)
+				output.set(BELOW_THR_BLK);
 
 			// multiply by brightness from intensity
 			if (coloredIntensityRA != null) {

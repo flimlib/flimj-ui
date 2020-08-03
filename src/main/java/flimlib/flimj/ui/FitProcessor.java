@@ -55,7 +55,7 @@ public class FitProcessor {
 
 	private RandomAccessibleInterval<FloatType> origTrans, binnedTrans, origIntensity;
 
-	private Img<FloatType> dispParams, irfIntensity;
+	private Img<FloatType> dispParams, irfIntensity, fitStatus;
 
 	private String fitType;
 
@@ -131,6 +131,7 @@ public class FitProcessor {
 		origIntensity = estimator.getIntensityMap();
 		estimator.estimateStartEnd();
 		params.transMap = tmpTransMap;
+		params.getReturnCodeMap = true;
 	}
 
 	public void setControllers(AbstractCtrl... controllers) {
@@ -425,6 +426,7 @@ public class FitProcessor {
 		params.transMap = previewTransMap;
 
 		dispParams = results.paramMap;
+		fitStatus = ops.convert().float32(results.retCodeMap);
 	}
 
 	/**
@@ -446,10 +448,18 @@ public class FitProcessor {
 	@SuppressWarnings("unchecked")
 	public RandomAccessibleInterval<FloatType> getPreviewImg(String option) {
 		// immediately available after param population
-		if (option.equals("Intensity"))
-			return Views.hyperSlice(results.intensityMap, params.ltAxis, 0);
-		else if (option.equals("IRF Intensity"))
-			return Views.hyperSlice(irfIntensity, params.ltAxis, 0);
+		switch (option) {
+			case "Intensity":
+				return Views.hyperSlice(results.intensityMap, params.ltAxis, 0);
+
+			case "IRF Intensity":
+				return Views.hyperSlice(irfIntensity, params.ltAxis, 0);
+
+			case "Fit Status":
+				return fitStatus != null
+						? Views.hyperSlice(fitStatus, params.ltAxis, 0)
+						: null;
+		}
 
 		int optionIdx = -1;
 		switch (fitType) {
