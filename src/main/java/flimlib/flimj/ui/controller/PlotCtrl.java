@@ -141,8 +141,8 @@ public class PlotCtrl extends AbstractCtrl {
 
 		// put series into chart
 		fitPlotChart.getData().add(plotSeries[TRN_IDX] = new Series<Number, Number>());
-		fitPlotChart.getData().add(plotSeries[IRF_IDX] = new Series<Number, Number>());
 		fitPlotChart.getData().add(plotSeries[FIT_IDX] = new Series<Number, Number>());
+		fitPlotChart.getData().add(plotSeries[IRF_IDX] = new Series<Number, Number>());
 		resPlotChart.getData().add(plotSeries[RES_IDX] = new Series<Number, Number>());
 		// auto ranging prevents manual adjustment of bounds
 		fitPlotChart.getXAxis().setAutoRanging(false);

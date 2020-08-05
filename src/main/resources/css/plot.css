@@ -1,25 +1,35 @@
-/* dots only */
-.default-color0.chart-series-line {
+/* default stylesheet: https://gist.github.com/tmazeika/c90c03c645d18722ddb0 */
+
+/* trans: dots only */
+#fitPlotChart .default-color0.chart-series-line {
     -fx-stroke-width: 0px;
 }
-.default-color0.chart-line-symbol {
+#fitPlotChart .default-color0.chart-line-symbol {
     -fx-background-color: CHART_COLOR_2, white;
     -fx-background-insets: 0, 1.5;
     /* -fx-background-radius: 5px; */
     -fx-padding: 3.5px;
 }
-
-/* lines without dots */
-.default-color1.chart-series-line {
-    -fx-stroke: CHART_COLOR_3;
-}
-.default-color1.chart-line-symbol {
-    -fx-padding: 0px;
-}
-.default-color2.chart-series-line {
+/* fitted: red line without dots */
+#fitPlotChart .default-color1.chart-series-line {
     -fx-stroke: CHART_COLOR_1;
 }
-.default-color2.chart-line-symbol {
+#fitPlotChart .default-color1.chart-line-symbol {
+    -fx-padding: 0px;
+}
+/* IRF: green line without dots*/
+#fitPlotChart .default-color2.chart-series-line {
+    -fx-stroke: CHART_COLOR_3;
+}
+#fitPlotChart .default-color2.chart-line-symbol {
+    -fx-padding: 0px;
+}
+
+/* res: red line without dots */
+#resPlotChart .default-color0.chart-series-line {
+    -fx-stroke-width: 2px;
+}
+#resPlotChart .default-color0.chart-line-symbol {
     -fx-padding: 0px;
 }
 

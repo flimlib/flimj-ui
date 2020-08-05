@@ -40,7 +40,7 @@
                   <children>
                     <AnchorPane prefHeight="250.0" VBox.vgrow="ALWAYS">
                       <children>
-                        <LineChart fx:id="fitPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <LineChart id="fitPlotChart" fx:id="fitPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <xAxis>
                             <NumberAxis label="ns" prefHeight="44.0" prefWidth="451.0" side="TOP" />
                           </xAxis>
@@ -80,7 +80,7 @@
                     </AnchorPane>
                     <AnchorPane maxHeight="200.0" minHeight="50.0" prefHeight="150.0" VBox.vgrow="SOMETIMES">
                       <children>
-                        <LineChart fx:id="resPlotChart" axisSortingPolicy="NONE" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <LineChart id="resPlotChart" fx:id="resPlotChart" legendVisible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <xAxis>
                             <NumberAxis />
                           </xAxis>
