@@ -34,7 +34,7 @@
       <content>
         <VBox styleClass="flim-tab-vbox">
           <children>
-            <HiddenSidesPane fx:id="plotAreaSidePane" triggerDistance="50.0">
+            <HiddenSidesPane fx:id="plotAreaSidePane" triggerDistance="10.0" animationDelay="300ms">
               <content>
                 <VBox styleClass="tab-pane-list-vbox" VBox.vgrow="ALWAYS">
                   <children>

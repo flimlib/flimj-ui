@@ -176,14 +176,14 @@ public class PlotCtrl extends AbstractCtrl {
 		// cause it to defocus and send the pane back)
 		final double triggerDistance = plotAreaSidePane.getTriggerDistance();
 		plotAreaSidePane.getRight().boundsInParentProperty().addListener((obs, oldVal, newVal) -> {
-			final double slideDist = Math.abs(newVal.getMinX() - plotAreaSidePane.getWidth());
+			// HACK: move left boundary by blur radius (defined in plot-tab.fxml) to prevent
+			// location shift
+			final double dispMinX = newVal.getMinX() + 30;
+			final double slideDist = Math.abs(dispMinX - plotAreaSidePane.getWidth());
 			plotAreaSidePane.setTriggerDistance(Math.max(slideDist, triggerDistance));
 
 			// render the covered portion into the background image
-			// HACK: move left boundary by blur radius (defined in plot-tab.fxml) to prevent
-			// location shift
-			sp.setViewport(new Rectangle2D(newVal.getMinX() + 30, 0, newVal.getWidth(),
-					newVal.getHeight()));
+			sp.setViewport(new Rectangle2D(dispMinX, 0, newVal.getWidth(), newVal.getHeight()));
 			plotAreaSidePane.getContent().snapshot(sp, (WritableImage) frostImageView.getImage());
 		});
 
