@@ -28,6 +28,7 @@ import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
 import flimlib.flimj.FlimOps;
 import flimlib.flimj.ParamEstimator;
+import flimlib.flimj.fitworker.FitWorker.FitEventHandler;
 import flimlib.flimj.ui.controller.AbstractCtrl;
 
 /**
@@ -50,6 +51,10 @@ public class FitProcessor {
 	private FitParams<FloatType> params, irfInfoParams;
 
 	private FitResults results;
+
+	private FitEventHandler<FloatType> FitEventHandler;
+
+	private double fitProgress;
 
 	private boolean isPickingIRF, allMask;
 
@@ -230,7 +235,7 @@ public class FitProcessor {
 		if ("Global".equals(fitType) && preview)
 			fr = (FitResults) ops.run("flim.fitLMA", params);
 		else
-			fr = (FitResults) ops.run("flim.fit" + fitType, params);
+			fr = (FitResults) ops.run("flim.fit" + fitType, params, null, null, FitEventHandler);
 
 		fr.intensityMap = this.results.intensityMap;
 		this.results = fr;
@@ -420,7 +425,30 @@ public class FitProcessor {
 			}
 		}
 
+		fitProgress = 0;
+		long nTotalFits = params.transMap.dimension(axisOrder[0]) //
+				* params.transMap.dimension(axisOrder[1]);
+		long[] completed = new long[1];
+		FitEventHandler = new FitEventHandler<FloatType>() {
+			@Override
+			public void onSingleComplete(int[] pos, FitParams<FloatType> params, FitResults results) {
+				synchronized (this) {
+					completed[0]++;
+					fitProgress = (double) completed[0] / nTotalFits;
+				}
+			}
+
+			@Override
+			public void onComplete(FitParams<FloatType> params, FitResults results) {
+				synchronized (this) {
+					fitProgress = 1;
+				}
+			}
+		};
+
 		updateFit(false);
+
+		FitEventHandler = null;
 
 		params.paramMap = previewParamMap;
 		params.transMap = previewTransMap;
@@ -434,7 +462,7 @@ public class FitProcessor {
 	 *         of fits completed
 	 */
 	public double getFitProgress() {
-		return -1;
+		return fitProgress;
 	}
 
 	/**

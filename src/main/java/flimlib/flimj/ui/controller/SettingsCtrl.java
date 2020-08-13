@@ -326,7 +326,6 @@ public class SettingsCtrl extends AbstractCtrl {
 				Platform.runLater(() -> {
 					// show "Done" for a brief moment
 					fittingBusyAnimTL.stop();
-					mainCtrl.setProgress(1.0);
 					fittingBusyAnimTL.getKeyFrames()
 							.setAll(new KeyFrame(Duration.seconds(0.1), e -> mainCtrl.setProgress(null)));
 					fittingBusyAnimTL.setCycleCount(1);
