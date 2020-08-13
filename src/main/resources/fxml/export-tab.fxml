@@ -35,6 +35,7 @@
                       </columnConstraints>
                       <rowConstraints>
                         <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                       </rowConstraints>
                       <children>
@@ -42,6 +43,7 @@
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Images" GridPane.columnIndex="1" />
                         <CheckComboBox fx:id="exportComboBox" prefWidth="150.0" GridPane.columnIndex="2" />
                         <Pane GridPane.columnIndex="3" />
+                        <CheckBox fx:id="withLUTCheckBox" mnemonicParsing="false" text="With LUT" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                       </children>
                     </GridPane>
                   </children>
@@ -68,8 +70,7 @@
                       </rowConstraints>
                       <children>
                         <Pane />
-                        <CheckBox fx:id="withLUTCheckBox" mnemonicParsing="false" text="With LUT" GridPane.columnIndex="1" />
-                        <!-- <CheckBox mnemonicParsing="false" text="CheckBox" GridPane.columnIndex="2" /> -->
+                        <CheckBox fx:id="saveConfigCheckBox" mnemonicParsing="false" text="Save config" GridPane.columnIndex="1" />
                         <Pane />
                       </children>
                     </GridPane>

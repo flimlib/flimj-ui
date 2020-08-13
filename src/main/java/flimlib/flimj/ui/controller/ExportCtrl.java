@@ -1,9 +1,13 @@
 package flimlib.flimj.ui.controller;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.IndexedCheckModel;
+import org.scijava.widget.FileWidget;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -30,7 +34,7 @@ public class ExportCtrl extends AbstractCtrl {
 	private CheckComboBox<String> exportComboBox;
 
 	@FXML
-	private CheckBox withLUTCheckBox;
+	private CheckBox withLUTCheckBox, saveConfigCheckBox;
 
 	/** The list of all export options */
 	private ObservableList<String> exportOptions;
@@ -45,7 +49,12 @@ public class ExportCtrl extends AbstractCtrl {
 
 		// disable export button if no item is selected
 		exportCBCheckModel.getCheckedIndices().addListener((ListChangeListener<Integer>) change -> {
-			exportButton.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty());
+			exportButton
+					.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty() && !saveConfigCheckBox.isSelected());
+		});
+		saveConfigCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+			exportButton
+					.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty() && !saveConfigCheckBox.isSelected());
 		});
 
 		exportButton.setDisable(true);
@@ -66,14 +75,27 @@ public class ExportCtrl extends AbstractCtrl {
 					} else {
 						imgp.initializeColorTables(1);
 						imgp.setColorTable(Utils.LIFETIME_LUT, 0);
-						imgp.setChannelMinimum(0,
-								getOps().stats().percentile(img, 10).getRealDouble());
-						imgp.setChannelMaximum(0,
-								getOps().stats().percentile(img, 90).getRealDouble());
+						imgp.setChannelMinimum(0, getOps().stats().percentile(img, 10).getRealDouble());
+						imgp.setChannelMaximum(0, getOps().stats().percentile(img, 90).getRealDouble());
 					}
 				}
 
 				getUIs().show(convertToPlaintext(option), imgp);
+			}
+
+			if (saveConfigCheckBox.isSelected()) {
+				// save param to file
+				File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
+						FileWidget.SAVE_STYLE);
+				if (cfgSavePath != null) {
+					try {
+						FileWriter writer = new FileWriter(cfgSavePath);
+						writer.write(fp.getParams().toJSON());
+						writer.close();
+					} catch (IOException e) {
+						throw new RuntimeException("Config file saving failed.", e);
+					}
+				}
 			}
 		});
 
