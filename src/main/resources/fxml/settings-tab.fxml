@@ -12,7 +12,6 @@
 <?import javafx.scene.control.Button ?>
 <?import javafx.scene.control.CheckBox ?>
 <?import javafx.scene.control.ChoiceBox ?>
-<?import javafx.scene.control.ProgressIndicator ?>
 <?import javafx.scene.control.ScrollPane ?>
 <?import javafx.scene.control.Separator ?>
 <?import javafx.scene.control.SplitPane ?>
@@ -55,12 +54,7 @@
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Intensity Thresh." />
                         <NumericSpinner fx:id="iThreshSpinner" editable="true" GridPane.columnIndex="1" />
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Kernel Size" GridPane.rowIndex="1" />
-                        <StackPane GridPane.columnIndex="1" GridPane.rowIndex="1">
-                          <children>
-                            <NumericSpinner fx:id="binSizeSpinner" editable="true" />
-                            <ProgressIndicator fx:id="binningBusyProgressIndicator" height="${binSizeSpinner.height}" prefHeight="10" visible="false" />
-                          </children>
-                        </StackPane>
+                        <NumericSpinner fx:id="binSizeSpinner" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <CheckBox fx:id="fullBinningCheckBox" text="Bin all pixels" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Algorithm" GridPane.rowIndex="3" />
                         <ChoiceBox fx:id="algoChoiceBox" prefWidth="120.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
@@ -253,12 +247,7 @@
                   </rowConstraints>
                   <children>
                     <Pane />
-                    <StackPane GridPane.columnIndex="1">
-                      <children>
-                        <Button fx:id="fitButton" mnemonicParsing="false" text="Fit Dataset" />
-                        <ProgressIndicator fx:id="fittingBusyProgressIndicator" height="${fitButton.height}" prefHeight="10" visible="false" />
-                      </children>
-                    </StackPane>
+                    <Button fx:id="fitButton" mnemonicParsing="false" text="Fit Dataset" GridPane.columnIndex="1" />
                     <Pane GridPane.columnIndex="2" />
                   </children>
                 </GridPane>

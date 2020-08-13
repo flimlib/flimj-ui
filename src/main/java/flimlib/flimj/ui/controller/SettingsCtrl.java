@@ -29,6 +29,8 @@ import flimlib.flimj.ui.FitProcessor.FitType;
 import flimlib.flimj.ui.Utils;
 import flimlib.flimj.ui.controls.NumericSpinner;
 import flimlib.flimj.ui.controls.NumericTextField;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -41,12 +43,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
+import javafx.util.Duration;
 
 /**
  * The controller of the "Settings" tab.
@@ -79,9 +81,6 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	@FXML
 	private Button fitButton;
-
-	@FXML
-	private ProgressIndicator fittingBusyProgressIndicator, binningBusyProgressIndicator;
 
 	/** The list of all parameter name labels */
 	private List<Text> paramLabels;
@@ -131,8 +130,10 @@ public class SettingsCtrl extends AbstractCtrl {
 		binSizeSpinner.setMax(255.0);
 		binSizeSpinner.setStepSize(1.0);
 		binSizeSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
-			binSizeSpinner.setDisable(true);
-			binningBusyProgressIndicator.setVisible(true);
+			MainCtrl mainCtrl = (MainCtrl) parentCtrl;
+			// display pending state
+			mainCtrl.setProgress(-1.0);
+
 			// binning will freeze the JFX thread and not allow the +/- event to be consumed
 			// which causes indefinite +/- and resulting calls to setBinning()
 			fp.submitRunnable(() -> {
@@ -141,7 +142,8 @@ public class SettingsCtrl extends AbstractCtrl {
 				// update of UI components should be run from JFX thread
 				Platform.runLater(() -> {
 					binSizeSpinner.setDisable(fullBinningCheckBox.isSelected());
-					binningBusyProgressIndicator.setVisible(false);
+					// restore from pending state
+					mainCtrl.setProgress(null);
 
 					requestUpdate();
 				});
@@ -308,17 +310,27 @@ public class SettingsCtrl extends AbstractCtrl {
 		});
 
 		fitButton.setOnAction(event -> {
-			fitButton.setDisable(true);
-			fittingBusyProgressIndicator.setVisible(true);
+			MainCtrl mainCtrl = (MainCtrl) parentCtrl;
+			// check fit status every 0.1s untill stopped
+			Timeline fittingBusyAnimTL = new Timeline(new KeyFrame(Duration.seconds(0.1),
+					e -> mainCtrl.setProgress(fp.getFitProgress())));
+			fittingBusyAnimTL.setCycleCount(Timeline.INDEFINITE);
 
 			// do heavy lifting on a separate thread
 			fp.submitRunnable(() -> {
+				fittingBusyAnimTL.play();
+
 				fp.fitDataset();
 
 				// update UI when done
 				Platform.runLater(() -> {
-					fitButton.setDisable(false);
-					fittingBusyProgressIndicator.setVisible(false);
+					// show "Done" for a brief moment
+					fittingBusyAnimTL.stop();
+					mainCtrl.setProgress(1.0);
+					fittingBusyAnimTL.getKeyFrames()
+							.setAll(new KeyFrame(Duration.seconds(0.1), e -> mainCtrl.setProgress(null)));
+					fittingBusyAnimTL.setCycleCount(1);
+					fittingBusyAnimTL.play();
 
 					// set new options
 					List<String> previewOptions = new ArrayList<>();

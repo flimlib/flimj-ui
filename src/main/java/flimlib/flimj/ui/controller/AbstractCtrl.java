@@ -23,6 +23,8 @@ public abstract class AbstractCtrl {
 
 	protected FitProcessor fp;
 
+	protected AbstractCtrl parentCtrl;
+
 	private boolean blockUpdate;
 
 	public static FXMLLoader getFXMLLoader(String name) throws IOException {
@@ -41,6 +43,15 @@ public abstract class AbstractCtrl {
 	 */
 	public void setFitProcessor(FitProcessor fp) {
 		this.fp = fp;
+	}
+
+	/**
+	 * Sets the parent controller of this controller.
+	 * 
+	 * @param parentCtrl the parent controller of this controller
+	 */
+	public void setParentCtrl(AbstractCtrl parentCtrl) {
+		this.parentCtrl = parentCtrl;
 	}
 
 	/**

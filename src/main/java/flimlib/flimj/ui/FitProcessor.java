@@ -430,6 +430,14 @@ public class FitProcessor {
 	}
 
 	/**
+	 * @return a number between 0 and 1 that corresponds to the current percentage
+	 *         of fits completed
+	 */
+	public double getFitProgress() {
+		return -1;
+	}
+
+	/**
 	 * @return the previewOptions
 	 */
 	public List<String> getPreviewOptions() {

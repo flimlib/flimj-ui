@@ -1,4 +1,12 @@
-/* default stylesheet: https://gist.github.com/tmazeika/c90c03c645d18722ddb0 */
+/* default stylesheet: http://hg.openjdk.java.net/openjfx/8/master/rt/file/88d3bef80ffc/modules/controls/src/main/resources/com/sun/javafx/scene/control/skin/modena/modena.css */
+
+/* busy status indicator over the entire window */
+#window-overlay {
+    -fx-background-color: #00000080
+}
+.progress-indicator .percentage {
+    -fx-fill:white;
+ }
 
 /* trans: dots only */
 #fitPlotChart .default-color0.chart-series-line {
