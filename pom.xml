@@ -95,7 +95,7 @@
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 
 		<flimlib.version>2.1.0</flimlib.version>
-		<flimj-ops.version>2.0.3</flimj-ops.version>
+		<flimj-ops.version>2.1.0</flimj-ops.version>
 		<controlsfx.version>8.40.15</controlsfx.version>
 	</properties>
 
