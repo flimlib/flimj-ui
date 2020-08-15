@@ -507,18 +507,25 @@ public class PlotCtrl extends AbstractCtrl {
 			setData(dataLists[RES_IDX], i, t, r);
 		}
 
-		int irfPlotOffset = 0;
-		int irfDataOffset = 0;
-		if (!fp.isPickingIRF()) {
-			irfPlotOffset = getParams().fitStart;
-			irfDataOffset = getIRFInfo().fitStart;
+		int irfDataOffset = !fp.isPickingIRF() ? irfDataOffset = getIRFInfo().fitStart : 0;
+
+		// find a scaling factor that makes trans and irf has the same height
+		float irfNormalizer = 1;
+		if (instr.length > 0) {
+			float transMax = Float.NEGATIVE_INFINITY;
+			for (int i = 0; i < trans.length; i++)
+				transMax = Math.max(transMax, trans[i]);
+			float irfMax = Float.NEGATIVE_INFINITY;
+			for (int i = 0; i < instr.length; i++)
+				irfMax = Math.max(irfMax, instr[i]);
+			irfNormalizer = transMax / irfMax;
+			if (irfNormalizer < 0 || !Float.isFinite(irfNormalizer))
+				irfNormalizer = 1;
 		}
 		for (int i = 0; i < instr.length; i++) {
 			// make IRF follow the start cursor
-			final float t =
-					(i - irfDataOffset + irfPlotOffset + (fp.isPickingIRF() ? 0 : -irfLength))
-							* xInc;
-			setData(dataLists[IRF_IDX], i, t, instr[i]);
+			final float t = (i - irfDataOffset) * xInc;
+			setData(dataLists[IRF_IDX], i, t, instr[i] * irfNormalizer);
 			// display IRF intensity when picking
 			if (fp.isPickingIRF()) {
 				prefixSum[i + 1] = prefixSum[i] + instr[i];
