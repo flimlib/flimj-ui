@@ -10,6 +10,12 @@ FLIMJ UI is an [ImageJ plugin](http://imagej.github.io/Plugins) for FLIM analysi
 
 ![](images/example%20screenshot.png)
 
+# Install
+
+In Fiji, open *Help > Update*, click <kbd>Manage update sites</kbd>; click <kbd>Add update site</kbd>, type in `https://sites.imagej.net/FLIMJ/`, click <kbd>Close</kbd>;
+
+Restart Fiji, open *Help > Update*, click <kbd>Advanced mode</kbd>, mark all assets from the FLIMJ updatesite as *Install / Update*; click <kbd>Update Changes</kbd>.
+
 # See also
 
  - [FLIMLib](https://github.com/flimlib/flimlib): Curve fitting library for FLIM
