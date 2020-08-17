@@ -400,6 +400,8 @@ public class FitProcessor {
 	}
 
 	public void fitDataset() {
+		fitProgress = 0;
+
 		// use cached trans if available
 		if (binnedTrans == null) {
 			binnedTrans = binRadius > 0
@@ -425,7 +427,6 @@ public class FitProcessor {
 			}
 		}
 
-		fitProgress = 0;
 		long nTotalFits = params.transMap.dimension(axisOrder[0]) //
 				* params.transMap.dimension(axisOrder[1]);
 		long[] completed = new long[1];
