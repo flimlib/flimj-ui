@@ -165,6 +165,7 @@ public final class FitParamsPrompter {
 		for (int d = imp.numDimensions() - 1; d >= 0; --d) {
 			if (d == xAxis || d == yAxis || d == params.ltAxis) continue;
 			img = Views.hyperSlice(img, d, position.getLongPosition(d));
+			if (d < params.ltAxis) params.ltAxis--;
 		}
 		if (img.numDimensions() != 3) {
 			throw new RuntimeException("Unexpected FLIM image dimensionality: " +
