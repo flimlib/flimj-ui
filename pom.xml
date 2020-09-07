@@ -94,8 +94,8 @@
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 
-		<flimlib.version>2.1.0</flimlib.version>
-		<flimj-ops.version>2.1.0</flimj-ops.version>
+		<flimlib.version>2.1.1</flimlib.version>
+		<flimj-ops.version>2.1.1</flimj-ops.version>
 		<controlsfx.version>8.40.15</controlsfx.version>
 	</properties>
 
