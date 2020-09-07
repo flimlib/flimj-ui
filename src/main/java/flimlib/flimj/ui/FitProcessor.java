@@ -604,7 +604,11 @@ public class FitProcessor {
 	}
 
 	public void submitRunnable(Runnable runnable) {
-		executor.submit(runnable);
+		try {
+			executor.submit(runnable).get();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void destroy() {
