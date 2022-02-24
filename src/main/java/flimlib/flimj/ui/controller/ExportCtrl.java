@@ -34,7 +34,7 @@ public class ExportCtrl extends AbstractCtrl {
 	private CheckComboBox<String> exportComboBox;
 
 	@FXML
-	private CheckBox withLUTCheckBox, saveConfigCheckBox;
+	private CheckBox withLUTCheckBox;
 
 	/** The list of all export options */
 	private ObservableList<String> exportOptions;
@@ -50,11 +50,7 @@ public class ExportCtrl extends AbstractCtrl {
 		// disable export button if no item is selected
 		exportCBCheckModel.getCheckedIndices().addListener((ListChangeListener<Integer>) change -> {
 			exportButton
-					.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty() && !saveConfigCheckBox.isSelected());
-		});
-		saveConfigCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
-			exportButton
-					.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty() && !saveConfigCheckBox.isSelected());
+					.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty());
 		});
 
 		exportButton.setDisable(true);
@@ -81,21 +77,6 @@ public class ExportCtrl extends AbstractCtrl {
 				}
 
 				getUIs().show(convertToPlaintext(option), imgp);
-			}
-
-			if (saveConfigCheckBox.isSelected()) {
-				// save param to file
-				File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
-						FileWidget.SAVE_STYLE);
-				if (cfgSavePath != null) {
-					try {
-						FileWriter writer = new FileWriter(cfgSavePath);
-						writer.write(fp.getParams().toJSON());
-						writer.close();
-					} catch (IOException e) {
-						throw new RuntimeException("Config file saving failed.", e);
-					}
-				}
 			}
 		});
 

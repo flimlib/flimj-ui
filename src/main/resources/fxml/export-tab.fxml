@@ -51,31 +51,6 @@
                     <Insets />
                   </VBox.margin>
                 </AnchorPane>
-                <AnchorPane>
-                  <children>
-                    <Separator prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                  </children>
-                </AnchorPane>
-                <AnchorPane>
-                  <children>
-                    <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                      <columnConstraints>
-                        <ColumnConstraints hgrow="ALWAYS" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-                        <ColumnConstraints />
-                      </columnConstraints>
-                      <rowConstraints>
-                        <RowConstraints vgrow="SOMETIMES" />
-                      </rowConstraints>
-                      <children>
-                        <Pane />
-                        <CheckBox fx:id="saveConfigCheckBox" mnemonicParsing="false" text="Save config" GridPane.columnIndex="1" />
-                        <Pane />
-                      </children>
-                    </GridPane>
-                  </children>
-                </AnchorPane>
               </children>
             </VBox>
             <Pane minHeight="0.0" VBox.vgrow="ALWAYS" />
