@@ -1,6 +1,7 @@
 package flimlib.flimj.ui.controller;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +27,9 @@ import net.imglib2.type.numeric.real.FloatType;
  */
 public class ConfigCtrl extends AbstractCtrl {
 
+    @FXML
+	private Button configLoadButton;
+
 	@FXML
 	private Button configSaveButton;
 
@@ -43,20 +47,7 @@ public class ConfigCtrl extends AbstractCtrl {
 
 	@Override
 	public void initialize() {
-		// exportOptions = exportComboBox.getItems();
-		// exportCBCheckModel = exportComboBox.getCheckModel();
 
-		// // disable export button if no item is selected
-		// exportCBCheckModel.getCheckedIndices().addListener((ListChangeListener<Integer>) change -> {
-		// 	configSaveButton
-		// 			.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty() && !saveConfigCheckBox.isSelected());
-		// });
-		// saveConfigCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
-		// 	configSaveButton
-		// 			.setDisable(exportCBCheckModel.getCheckedIndices().isEmpty() && !saveConfigCheckBox.isSelected());
-		// });
-
-		// configSaveButton.setDisable(true);
 		configSaveButton.setOnAction(event -> {
             File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
             FileWidget.SAVE_STYLE);
@@ -69,69 +60,28 @@ public class ConfigCtrl extends AbstractCtrl {
                     throw new RuntimeException("Config file saving failed.", e);
                 }
             }
-			// for (int idx : exportCBCheckModel.getCheckedIndices()) {
-			// 	String option = exportOptions.get(idx);
-
-			// 	RandomAccessibleInterval<FloatType> previewRAI = fp.getPreviewImg(option);
-			// 	Img<FloatType> img = getOps().create().img(previewRAI);
-			// 	getOps().copy().rai(img, previewRAI);
-
-			// 	ImgPlus<FloatType> imgp = new ImgPlus<FloatType>(img);
-			// 	if (withLUTCheckBox.isSelected()) {
-			// 		// set bounds and LUT
-			// 		if ("Intensity".equals(option) || "IRF Intensity".equals(option)) {
-			// 			imgp.setChannelMinimum(0, 0);
-			// 			imgp.setChannelMaximum(0, getOps().stats().max(img).getRealDouble());
-			// 		} else {
-			// 			imgp.initializeColorTables(1);
-			// 			imgp.setColorTable(Utils.LIFETIME_LUT, 0);
-			// 			imgp.setChannelMinimum(0, getOps().stats().percentile(img, 10).getRealDouble());
-			// 			imgp.setChannelMaximum(0, getOps().stats().percentile(img, 90).getRealDouble());
-			// 		}
-			// 	}
-
-			// 	getUIs().show(convertToPlaintext(option), imgp);
-			// }
-
-			// if (saveConfigCheckBox.isSelected()) {
-			// 	// save param to file
-			// 	File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
-			// 			FileWidget.SAVE_STYLE);
-			// 	if (cfgSavePath != null) {
-			// 		try {
-			// 			FileWriter writer = new FileWriter(cfgSavePath);
-			// 			writer.write(fp.getParams().toJSON());
-			// 			writer.close();
-			// 		} catch (IOException e) {
-			// 			throw new RuntimeException("Config file saving failed.", e);
-			// 		}
-			// 	}
-			// }
 		});
 
-		// export with LUT by default
-		// withLUTCheckBox.setSelected(true);
+		configLoadButton.setOnAction(event -> {
+            // File cfgLoadPath = getUIs().chooseFile("Choose config file", null,
+            // FileWidget.OPEN_STYLE);
+            File cfgLoadPath = new File("fit_config.txt");
+            if (cfgLoadPath != null) {
+                String cfgPath = cfgLoadPath.getPath();
+                if (cfgPath.endsWith(".txt")) {
+                    try {
+                        String cfgStr = new String(Files.readAllBytes(cfgLoadPath.toPath()));
+                        final FitParams<FloatType> params = new FitParams<>();
+                        System.out.println(cfgStr);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Config file loading failed.", e);
+                    }
+                } else {
+                    throw new RuntimeException("Config file must be a text file.");
+                }
+            }
+		});
+
 	}
 
-	// @Override
-	// protected void refresh(FitParams<FloatType> params, FitResults results) {
-	// 	// make a copy to prevent being changed by setAll()
-	// 	List<String> checked = new ArrayList<>(exportCBCheckModel.getCheckedItems());
-	// 	exportCBCheckModel.clearChecks();
-	// 	exportOptions.setAll(fp.getPreviewOptions());
-	// 	for (String oldItem : checked) {
-	// 		exportCBCheckModel.check(oldItem);
-	// 	}
-	// }
-
-	private static String convertToPlaintext(String name) {
-		name = name.replace("τ", "tau");
-		name = name.replace("₁", "_1");
-		name = name.replace("₂", "_2");
-		name = name.replace("₃", "_3");
-		name = name.replace("ₘ", "_m");
-		name = name.replace("ᵢ", "_i");
-		name = name.replace("%", "percent");
-		return name;
-	}
 }
