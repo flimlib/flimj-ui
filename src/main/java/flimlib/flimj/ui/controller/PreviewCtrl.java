@@ -135,7 +135,7 @@ public class PreviewCtrl extends AbstractCtrl {
 
 		/**
 		 * Draw a new cb when it needs update.
-		 * 
+		 *
 		 * @param converter the new color map
 		 */
 		public void setCB(RealLUTConverter<FloatType> converter) {
@@ -153,7 +153,7 @@ public class PreviewCtrl extends AbstractCtrl {
 
 		/**
 		 * Changes text and moves the cursor to indicate the new value.
-		 * 
+		 *
 		 * @param value the new value
 		 */
 		public void dispValue(double value) {
@@ -168,7 +168,7 @@ public class PreviewCtrl extends AbstractCtrl {
 
 		/**
 		 * Pops over a node ({@link PreviewCtrl#lClickPane}/{@link PreviewCtrl#rClickPane})
-		 * 
+		 *
 		 * @param owner the node to attach the pop over; {@code null} to hide.
 		 */
 		public void setOwner(Node owner) {
@@ -426,7 +426,7 @@ public class PreviewCtrl extends AbstractCtrl {
 	/**
 	 * Annotates the intensity image and load to the on-screen Image. Intensity below threshold is
 	 * colored {@link #BELOW_THR_RED}.
-	 * 
+	 *
 	 * @param intensity the intensity data
 	 * @param thresh    the threshold
 	 */
@@ -441,13 +441,13 @@ public class PreviewCtrl extends AbstractCtrl {
 
 	/**
 	 * Annotates the result image and load to the on-screen Image.
-	 * 
+	 *
 	 * @param result the result data
 	 */
 	@SuppressWarnings("unchecked")
 	private void loadAnotatedResultsImage(RandomAccessibleInterval<FloatType> result) {
 		final RandomAccessibleInterval<FloatType> fitStatus = fp.getPreviewImg("Fit Status");
-		final RandomAccess<FloatType> fitStatusRA = 
+		final RandomAccess<FloatType> fitStatusRA =
 				fitStatus != null ? fitStatus.randomAccess() : null;
 
 		IterableInterval<FloatType> itr = null;
@@ -501,7 +501,7 @@ public class PreviewCtrl extends AbstractCtrl {
 
 	/**
 	 * Updates the trans/IRF coordinates.
-	 * 
+	 *
 	 * @param xProperty the new x coordinate in pixels
 	 * @param yProperty the new y coordinate in pixels
 	 * @param irf       whether the update is on trans or IRF coordinate
