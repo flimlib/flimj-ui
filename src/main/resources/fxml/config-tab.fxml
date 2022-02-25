@@ -37,7 +37,7 @@
                     <Pane />
                     <Button fx:id="configLoadButton" mnemonicParsing="false" text="Load Config" GridPane.columnIndex="1" />
                     <Button fx:id="configSaveButton" mnemonicParsing="false" text="Save Config" GridPane.columnIndex="2" />
-                    <Pane GridPane.columnIndex="2" />
+                    <Pane GridPane.columnIndex="3" />
                   </children>
                 </GridPane>
               </children>
