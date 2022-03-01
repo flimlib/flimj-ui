@@ -1,34 +1,19 @@
 package flimlib.flimj.ui.controller;
 
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
 import java.io.File;
 import java.nio.file.Files;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import org.controlsfx.control.CheckComboBox;
-import org.controlsfx.control.IndexedCheckModel;
 import org.scijava.widget.FileWidget;
-import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javax.swing.JFileChooser;
-import net.imagej.ImgPlus;
 import flimlib.flimj.FitParams;
-import flimlib.flimj.FitResults;
-import flimlib.flimj.ui.Utils;
 import flimlib.flimj.ui.controls.NumericSpinner;
 import flimlib.flimj.ui.FitProcessor.FitType;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
 /**

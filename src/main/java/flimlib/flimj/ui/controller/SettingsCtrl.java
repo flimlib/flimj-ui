@@ -352,7 +352,6 @@ public class SettingsCtrl extends AbstractCtrl {
 		if (fp.getAlgo() != null){
 			algoChoiceBox.setValue(FitType.valueOf(fp.getAlgo()));
 		}
-		System.out.println(fp.getAlgo());
 		noiseChoiceBox.setValue(params.noise);
 		nCompChoiceBox.setValue(params.nComp);
 		chisqTextField.setText(Utils.prettyFmt(results.chisq));
