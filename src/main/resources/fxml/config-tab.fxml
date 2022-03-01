@@ -22,7 +22,11 @@
       <content>
         <VBox styleClass="flim-tab-vbox">
           <children>
-            <AnchorPane styleClass="tab-toolbar">
+            <!-- <Pane minHeight="0.0" VBox.vgrow="ALWAYS" /> -->
+            <AnchorPane styleClass="tab-toolbar" VBox.vgrow="ALWAYS">
+              <!-- <VBox.margin>
+                <Insets />
+              </VBox.margin> -->
               <children>
                 <GridPane alignment="CENTER" styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                   <columnConstraints>
