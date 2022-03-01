@@ -60,9 +60,9 @@ public class ConfigCtrl extends AbstractCtrl {
 	public void initialize() {
 
 		configSaveButton.setOnAction(event -> {
-            // File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
-            // FileWidget.SAVE_STYLE);
-            File cfgSavePath = new File("fit_config.txt");
+            File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
+            FileWidget.SAVE_STYLE);
+            // File cfgSavePath = new File("fit_config.txt");
             if (cfgSavePath != null) {
                 try {
                     FileWriter writer = new FileWriter(cfgSavePath);
@@ -70,9 +70,9 @@ public class ConfigCtrl extends AbstractCtrl {
                     // add the binRadius to the config file
                     String paramsBinRadiusJSON = paramsJSON.substring(0, 1) + "\n" + "  \"binRadius\": "
                             + fp.getBinRadius() + "," + paramsJSON.substring(1);
+                    // add the fitType to the config file
                     String paramsBinRadiusFitTypeJSON = paramsBinRadiusJSON.substring(0, 1) + "\n" + "  \"fitType\": "
                             + fp.getAlgo() + "," + paramsBinRadiusJSON.substring(1);
-                    // System.out.println(fp.getParams());
                     writer.write(paramsBinRadiusFitTypeJSON);
                     writer.close();
                 } catch (IOException e) {
@@ -82,9 +82,9 @@ public class ConfigCtrl extends AbstractCtrl {
 		});
 
 		configLoadButton.setOnAction(event -> {
-            // File cfgLoadPath = getUIs().chooseFile("Choose config file", null,
-            // FileWidget.OPEN_STYLE);
-            File cfgLoadPath = new File("fit_config.txt");
+            File cfgLoadPath = getUIs().chooseFile("Choose config file", null,
+            FileWidget.OPEN_STYLE);
+            // File cfgLoadPath = new File("fit_config.txt");
             if (cfgLoadPath != null) {
                 String cfgPath = cfgLoadPath.getPath();
                 if (cfgPath.endsWith(".txt")) {
