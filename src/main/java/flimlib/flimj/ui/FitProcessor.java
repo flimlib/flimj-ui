@@ -160,6 +160,22 @@ public class FitProcessor {
 	}
 
 	/**
+	 * set the params
+	 */
+	public void updateParamsFromFile(FitParams<FloatType> newParams) {
+		newParams.trans = params.trans;
+		newParams.transMap = params.transMap;
+		this.params = newParams;
+	}
+
+	/**
+	 * @return the binRadius
+	 */
+	public int getBinRadius() {
+		return binRadius;
+	}
+
+	/**
 	 * @return the IRF info capsule
 	 */
 	public FitParams<FloatType> getIRFInfo() {
@@ -268,6 +284,10 @@ public class FitProcessor {
 		}
 		// load trans after binning
 		setPreviewPos(previewX, previewY, false);
+	}
+
+	public String getAlgo(){
+		return fitType;
 	}
 
 	public void setAlgo(FitType algo) {
@@ -573,7 +593,7 @@ public class FitProcessor {
 
 	/**
 	 * Permute the coordinates from ltDimension-last to ltDimension-at-ltAxis.
-	 * 
+	 *
 	 * @param coordinates  the coordinates in ltDimension-last order
 	 * @param lifetimeAxis the index of the lifetime axis
 	 * @return the coordinates in ltDimension-at-ltAxis order
@@ -589,7 +609,7 @@ public class FitProcessor {
 
 	/**
 	 * Permute the coordinates from ltDimension-at-ltAxis to ltDimension-last.
-	 * 
+	 *
 	 * @param coordinates  the coordinates in ltDimension-at-ltAxis order
 	 * @param lifetimeAxis the index of the lifetime axis
 	 * @return the coordinates in ltDimension-last order

@@ -348,6 +348,11 @@ public class SettingsCtrl extends AbstractCtrl {
 	public void refresh(FitParams<FloatType> params, FitResults results) {
 		iThreshSpinner.setMax(getOps().stats().max(results.intensityMap).getRealDouble());
 		iThreshSpinner.getNumberProperty().setValue((double) params.iThresh);
+		binSizeSpinner.getNumberProperty().setValue((double) fp.getBinRadius());
+		if (fp.getAlgo() != null){
+			algoChoiceBox.setValue(FitType.valueOf(fp.getAlgo()));
+		}
+		System.out.println(fp.getAlgo());
 		noiseChoiceBox.setValue(params.noise);
 		nCompChoiceBox.setValue(params.nComp);
 		chisqTextField.setText(Utils.prettyFmt(results.chisq));
@@ -364,7 +369,7 @@ public class SettingsCtrl extends AbstractCtrl {
 	/**
 	 * Adjust the parameter pane to make the parameter labels agree with the algorithm and the
 	 * number of components.
-	 * 
+	 *
 	 * @param algo  the algorithm used to perform fitting
 	 * @param nComp the number of components (available only for LMA and global)
 	 */
@@ -454,7 +459,7 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	/**
 	 * Set the parameter labels. Add and remove entries if necessary.
-	 * 
+	 *
 	 * @param paramNames the list of all labels
 	 */
 	private void setParams(List<String> paramNames, List<Boolean> paramIsInputs) {
@@ -478,7 +483,7 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	/**
 	 * Create a parameter entry that includes the label, the input TextField and the "Fix" CheckBox.
-	 * 
+	 *
 	 * @param name     the parameter label
 	 * @param isInput  true if the parameter can have a "Fix" checkbox and mutable value
 	 * @param paramIdx the index in params.param[] or params.paramFree[]
