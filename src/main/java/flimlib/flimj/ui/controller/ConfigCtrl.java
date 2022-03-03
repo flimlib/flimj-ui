@@ -17,7 +17,7 @@ import flimlib.flimj.ui.FitProcessor.FitType;
 import net.imglib2.type.numeric.real.FloatType;
 
 /**
- * The controller of the "Export" tab.
+ * The controller of the "Config" tab.
  */
 public class ConfigCtrl extends AbstractCtrl {
 	@FXML
@@ -29,18 +29,6 @@ public class ConfigCtrl extends AbstractCtrl {
 	@FXML
 	private Button configSaveButton;
 
-	// @FXML
-	// private CheckComboBox<String> exportComboBox;
-
-	// @FXML
-	// private CheckBox withLUTCheckBox, saveConfigCheckBox;
-
-	// /** The list of all export options */
-	// private ObservableList<String> exportOptions;
-
-	// /** The {@link IndexedCheckModel} of the export option CheckBox */
-	// private IndexedCheckModel<String> exportCBCheckModel;
-
 	@Override
 	public void initialize() {
 
@@ -51,14 +39,14 @@ public class ConfigCtrl extends AbstractCtrl {
             if (cfgSavePath != null) {
                 try {
                     FileWriter writer = new FileWriter(cfgSavePath);
-                    String paramsJSON = fp.getParams().toJSON();
+                    String paramsJSONString = fp.getParams().toJSON();
                     // add the binRadius to the config file
-                    String paramsBinRadiusJSON = paramsJSON.substring(0, 1) + "\n" + "  \"binRadius\": "
-                            + fp.getBinRadius() + "," + paramsJSON.substring(1);
+                    String binRadiusJSONPrefix = jsonPrefix("binRadius");
+                    String paramsJSON = binRadiusJSONPrefix + fp.getBinRadius() + "," + paramsJSONString.substring(1);
                     // add the fitType to the config file
-                    String paramsBinRadiusFitTypeJSON = paramsBinRadiusJSON.substring(0, 1) + "\n" + "  \"fitType\": "
-                            + fp.getAlgo() + "," + paramsBinRadiusJSON.substring(1);
-                    writer.write(paramsBinRadiusFitTypeJSON);
+                    String fitTypeJSONPrefix = jsonPrefix("fitType");
+                    paramsJSON = fitTypeJSONPrefix + String.format("\"%s\"", fp.getAlgo()) + "," + paramsJSON.substring(1);
+                    writer.write(paramsJSON);
                     writer.close();
                 } catch (IOException e) {
                     throw new RuntimeException("Config file saving failed.", e);
@@ -116,5 +104,10 @@ public class ConfigCtrl extends AbstractCtrl {
 		});
 
 	}
+
+    private static String jsonPrefix(String fieldName){
+        String fieldString = String.format("  \"%s\": ", fieldName);
+        return "{\n" + fieldString;
+    }
 
 }
