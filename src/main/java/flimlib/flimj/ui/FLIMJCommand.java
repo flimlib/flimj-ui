@@ -66,7 +66,7 @@ public class FLIMJCommand implements Command {
 			EventQueue.invokeLater(() -> {
 				initSwing(fxPanel);
 			});
-		
+
 		if (!initSuccessful[0])
 			log().warn("FLIMJ: UI init failed or aborted by user. Exiting.");
 	}
@@ -114,7 +114,7 @@ public class FLIMJCommand implements Command {
 
 	/**
 	 * Initializes the GUI frame.
-	 * 
+	 *
 	 * @param fxPanel the embeded channel
 	 * @throws IOException if the fxml is not found
 	 * @return <code>true</code> - if the operation is successful
@@ -171,7 +171,7 @@ public class FLIMJCommand implements Command {
 
 	/**
 	 * Loads the icon image specified by url in different resolutions.
-	 * 
+	 *
 	 * @param url the URL of the icon image
 	 * @return the image in 16x16, 20x20, 32x32 and 40x40
 	 */
