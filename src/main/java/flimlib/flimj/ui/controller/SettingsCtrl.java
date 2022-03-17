@@ -94,6 +94,8 @@ public class SettingsCtrl extends AbstractCtrl {
 	/** The list of all input parameter indices */
 	private List<Integer> paramIndices;
 
+	private double threshBinZero;
+
 	/** The list of dataset present under the current context */
 	private HashMap<String, FitParams<FloatType>> presentDatasets;
 
@@ -113,6 +115,12 @@ public class SettingsCtrl extends AbstractCtrl {
 		iThreshSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
 			FitParams<FloatType> params = getParams();
 			params.iThresh = newVal.floatValue();
+
+			ObjectProperty<Double> binSizeProperty = binSizeSpinner.getNumberProperty();
+			if (binSizeProperty.get() == 0.0) {
+				threshBinZero = newVal.floatValue();
+			}
+
 			// recalculate global trans for pixels above threshold
 			fp.invalidateGlobalTrans();
 			// turn off estimate based on percentage
@@ -153,23 +161,24 @@ public class SettingsCtrl extends AbstractCtrl {
 
 			private double lastSize;
 			private double lastThresh;
+			private double lastThreshZero;
 
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
 					Boolean newValue) {
 				ObjectProperty<Double> binSizeProperty = binSizeSpinner.getNumberProperty();
 				ObjectProperty<Double> iThreshProperty = iThreshSpinner.getNumberProperty();
+
 				if (newValue) {
 					lastSize = binSizeProperty.get();
 					binSizeProperty.set(-1.0);
-					lastThresh = iThreshProperty.get();
-					iThreshProperty.set(0.0);
+					iThreshProperty.set(threshBinZero);
 					iThreshSpinner.setDisable(true);
 				} else {
 					binSizeSpinner.setDisable(false);
 					binSizeProperty.set(lastSize);
 					iThreshSpinner.setDisable(false);
-					iThreshProperty.set(lastThresh);
+					iThreshProperty.set(threshBinZero);
 				}
 			}
 		});

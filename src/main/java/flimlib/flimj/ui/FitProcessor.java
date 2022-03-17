@@ -250,14 +250,15 @@ public class FitProcessor {
 					origIntensity.dimension(axisOrder[1]));
 			allMask = true;
 		}
+
 		if (size != binRadius) {
 			// recalculate threshold to equalize per-pixel threshold
-			// params.iThresh = Math.round((double) params.iThresh //
-			// 		/ ((2 * binRadius + 1) * (2 * binRadius + 1))
-			// 		* ((2 * kernelSize + 1) * (2 * kernelSize + 1)));
+			params.iThresh = Math.round((double) params.iThresh //
+					/ ((2 * binRadius + 1) * (2 * binRadius + 1))
+					* ((2 * size + 1) * (2 * size + 1)));
 			// invalidate cached
 			binnedTrans = null;
-			binRadius = kernelSize;
+			binRadius = size;
 			if (size > 0) {
 				Img<DoubleType> kernel = FlimOps.makeSquareKernel(kernelSize * 2 + 1);
 				results.intensityMap = (Img<FloatType>) (allMask
@@ -267,6 +268,7 @@ public class FitProcessor {
 			} else
 				results.intensityMap = (Img<FloatType>) origIntensity;
 		}
+
 		// load trans after binning
 		setPreviewPos(previewX, previewY, false);
 	}
