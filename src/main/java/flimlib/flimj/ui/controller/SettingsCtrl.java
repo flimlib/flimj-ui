@@ -160,8 +160,6 @@ public class SettingsCtrl extends AbstractCtrl {
 		fullBinningCheckBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
 
 			private double lastSize;
-			private double lastThresh;
-			private double lastThreshZero;
 
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
