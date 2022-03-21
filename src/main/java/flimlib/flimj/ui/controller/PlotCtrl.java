@@ -229,7 +229,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	/**
 	 * Adds change listeners to critical values so that they work together.
-	 * 
+	 *
 	 * @param csr     the cursor
 	 * @param csrPos  the cursor position in [0, 1]
 	 * @param spinner the spinner associated with the cursor position
@@ -323,7 +323,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	/**
 	 * Retrieves the photon count within the interval [fitStart, fitEnd].
-	 * 
+	 *
 	 * @return the photon count
 	 */
 	private String getphtnCnt() {
@@ -337,7 +337,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	/**
 	 * Updates param in fit processors when indices are changed.
-	 * 
+	 *
 	 * @param isLCsr true if change is on left cursor (start)
 	 * @param newVal the updated value
 	 */
@@ -407,7 +407,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	/**
 	 * The one-liner for {@link #adjustPlottedPortion(boolean, Series, List, double, int)}
-	 * 
+	 *
 	 * @param isLCsr
 	 * @param plotIdx
 	 * @param csrPosValue
@@ -420,7 +420,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	/**
 	 * Adjusts the portion of the {@link Series} displayed according to the change of the cursor.
-	 * 
+	 *
 	 * @param isLCsr      {@code true} the cursor is {@link #lCsr}
 	 * @param series      the data series in question
 	 * @param dataList    the list of (x, y) data
@@ -472,7 +472,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	/**
 	 * Plots the fitted function as well as the transient data and residuals.
-	 * 
+	 *
 	 * @param trans the transient series
 	 * @param xInc  the x (time) increment
 	 */
@@ -567,7 +567,7 @@ public class PlotCtrl extends AbstractCtrl {
 
 	/**
 	 * Add a new data point to the chart.
-	 * 
+	 *
 	 * @param list the series data
 	 * @param idx  the index to insert into {@code list}
 	 * @param x    the x value

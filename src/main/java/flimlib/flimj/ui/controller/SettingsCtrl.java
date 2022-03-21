@@ -94,6 +94,8 @@ public class SettingsCtrl extends AbstractCtrl {
 	/** The list of all input parameter indices */
 	private List<Integer> paramIndices;
 
+	private double threshBinZero;
+
 	/** The list of dataset present under the current context */
 	private HashMap<String, FitParams<FloatType>> presentDatasets;
 
@@ -113,6 +115,12 @@ public class SettingsCtrl extends AbstractCtrl {
 		iThreshSpinner.getNumberProperty().addListener((obs, oldVal, newVal) -> {
 			FitParams<FloatType> params = getParams();
 			params.iThresh = newVal.floatValue();
+
+			ObjectProperty<Double> binSizeProperty = binSizeSpinner.getNumberProperty();
+			if (binSizeProperty.get() == 0.0) {
+				threshBinZero = newVal.floatValue();
+			}
+
 			// recalculate global trans for pixels above threshold
 			fp.invalidateGlobalTrans();
 			// turn off estimate based on percentage
@@ -157,12 +165,18 @@ public class SettingsCtrl extends AbstractCtrl {
 			public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
 					Boolean newValue) {
 				ObjectProperty<Double> binSizeProperty = binSizeSpinner.getNumberProperty();
+				ObjectProperty<Double> iThreshProperty = iThreshSpinner.getNumberProperty();
+
 				if (newValue) {
 					lastSize = binSizeProperty.get();
 					binSizeProperty.set(-1.0);
+					iThreshProperty.set(threshBinZero);
+					iThreshSpinner.setDisable(true);
 				} else {
 					binSizeSpinner.setDisable(false);
 					binSizeProperty.set(lastSize);
+					iThreshSpinner.setDisable(false);
+					iThreshProperty.set(threshBinZero);
 				}
 			}
 		});
@@ -364,7 +378,7 @@ public class SettingsCtrl extends AbstractCtrl {
 	/**
 	 * Adjust the parameter pane to make the parameter labels agree with the algorithm and the
 	 * number of components.
-	 * 
+	 *
 	 * @param algo  the algorithm used to perform fitting
 	 * @param nComp the number of components (available only for LMA and global)
 	 */
@@ -454,7 +468,7 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	/**
 	 * Set the parameter labels. Add and remove entries if necessary.
-	 * 
+	 *
 	 * @param paramNames the list of all labels
 	 */
 	private void setParams(List<String> paramNames, List<Boolean> paramIsInputs) {
@@ -478,7 +492,7 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	/**
 	 * Create a parameter entry that includes the label, the input TextField and the "Fix" CheckBox.
-	 * 
+	 *
 	 * @param name     the parameter label
 	 * @param isInput  true if the parameter can have a "Fix" checkbox and mutable value
 	 * @param paramIdx the index in params.param[] or params.paramFree[]
