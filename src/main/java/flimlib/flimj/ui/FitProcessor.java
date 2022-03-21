@@ -259,12 +259,14 @@ public class FitProcessor {
 
 	public void setBinning(int size) {
 		allMask = false;
+		int kernelSize = size;
 		if (size == -1) {
 			// FIXME: divide by 2 after https://github.com/imagej/imagej-ops/issues/628 is fixed
-			size = (int) Math.max(origIntensity.dimension(axisOrder[0]),
+			kernelSize = (int) Math.max(origIntensity.dimension(axisOrder[0]),
 					origIntensity.dimension(axisOrder[1]));
 			allMask = true;
 		}
+
 		if (size != binRadius) {
 			// recalculate threshold to equalize per-pixel threshold
 			params.iThresh = Math.round((double) params.iThresh //
@@ -274,7 +276,7 @@ public class FitProcessor {
 			binnedTrans = null;
 			binRadius = size;
 			if (size > 0) {
-				Img<DoubleType> kernel = FlimOps.makeSquareKernel(size * 2 + 1);
+				Img<DoubleType> kernel = FlimOps.makeSquareKernel(kernelSize * 2 + 1);
 				results.intensityMap = (Img<FloatType>) (allMask
 						? ops.filter().convolve(origIntensity, kernel,
 								new OutOfBoundsPeriodicFactory<>())
@@ -282,6 +284,7 @@ public class FitProcessor {
 			} else
 				results.intensityMap = (Img<FloatType>) origIntensity;
 		}
+
 		// load trans after binning
 		setPreviewPos(previewX, previewY, false);
 	}
