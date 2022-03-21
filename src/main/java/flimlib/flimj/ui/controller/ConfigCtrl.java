@@ -35,7 +35,6 @@ public class ConfigCtrl extends AbstractCtrl {
 		configSaveButton.setOnAction(event -> {
             File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
             FileWidget.SAVE_STYLE);
-            // File cfgSavePath = new File("fit_config.txt");
             if (cfgSavePath != null) {
                 try {
                     FileWriter writer = new FileWriter(cfgSavePath);
@@ -57,7 +56,6 @@ public class ConfigCtrl extends AbstractCtrl {
 		configLoadButton.setOnAction(event -> {
             File cfgLoadPath = getUIs().chooseFile("Choose config file", null,
             FileWidget.OPEN_STYLE);
-            // File cfgLoadPath = new File("fit_config.txt");
             if (cfgLoadPath != null) {
                 String cfgPath = cfgLoadPath.getPath();
                 if (cfgPath.endsWith(".txt")) {
