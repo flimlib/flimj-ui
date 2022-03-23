@@ -160,6 +160,22 @@ public class FitProcessor {
 	}
 
 	/**
+	 * set the params
+	 */
+	public void updateParamsFromFile(FitParams<FloatType> newParams) {
+		newParams.trans = params.trans;
+		newParams.transMap = params.transMap;
+		this.params = newParams;
+	}
+
+	/**
+	 * @return the binRadius
+	 */
+	public int getBinRadius() {
+		return binRadius;
+	}
+
+	/**
 	 * @return the IRF info capsule
 	 */
 	public FitParams<FloatType> getIRFInfo() {
@@ -271,6 +287,10 @@ public class FitProcessor {
 
 		// load trans after binning
 		setPreviewPos(previewX, previewY, false);
+	}
+
+	public String getAlgo(){
+		return fitType;
 	}
 
 	public void setAlgo(FitType algo) {

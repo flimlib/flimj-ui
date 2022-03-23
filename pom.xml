@@ -10,7 +10,7 @@
 
 	<groupId>flimlib</groupId>
 	<artifactId>flimj-ui</artifactId>
-	<version>1.1.1-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 
 	<name>FLIMJ</name>
 	<description>Fluorescence lifetime analysis in ImageJ.</description>
@@ -97,6 +97,7 @@
 		<flimlib.version>2.1.1</flimlib.version>
 		<flimj-ops.version>2.1.1</flimj-ops.version>
 		<controlsfx.version>8.40.15</controlsfx.version>
+		<gson.version>2.9.0</gson.version>
 	</properties>
 
 	<dependencies>
@@ -148,6 +149,12 @@
 			<groupId>org.controlsfx</groupId>
 			<artifactId>controlsfx</artifactId>
 			<version>${controlsfx.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>${gson.version}</version>
 		</dependency>
 	</dependencies>
 

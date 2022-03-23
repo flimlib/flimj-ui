@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?language JavaScript ?>
+<?import javafx.geometry.Insets ?>
+<?import javafx.scene.control.Button ?>
+<?import javafx.scene.control.CheckBox ?>
+<?import javafx.scene.control.Separator ?>
+<?import javafx.scene.control.SplitPane ?>
+<?import javafx.scene.control.TitledPane ?>
+<?import javafx.scene.layout.AnchorPane ?>
+<?import javafx.scene.layout.ColumnConstraints ?>
+<?import javafx.scene.layout.GridPane ?>
+<?import javafx.scene.layout.Pane ?>
+<?import javafx.scene.layout.RowConstraints ?>
+<?import javafx.scene.layout.VBox ?>
+<?import javafx.scene.text.Text ?>
+<?import org.controlsfx.control.CheckComboBox ?>
+
+<AnchorPane stylesheets="@../css/plot.css" SplitPane.resizableWithParent="false" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flimlib.flimj.ui.controller.ConfigCtrl">
+  <children>
+    <TitledPane collapsible="false" text="Config" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <content>
+        <VBox styleClass="flim-tab-vbox">
+          <children>
+            <!-- <Pane minHeight="0.0" VBox.vgrow="ALWAYS" /> -->
+            <AnchorPane styleClass="tab-toolbar" VBox.vgrow="ALWAYS">
+              <!-- <VBox.margin>
+                <Insets />
+              </VBox.margin> -->
+              <children>
+                <GridPane alignment="CENTER" styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints minWidth="10.0" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                    <Pane />
+                    <Button fx:id="configLoadButton" mnemonicParsing="false" text="Load Config" GridPane.columnIndex="1" />
+                    <Button fx:id="configSaveButton" mnemonicParsing="false" text="Save Config" GridPane.columnIndex="2" />
+                    <Pane GridPane.columnIndex="3" />
+                  </children>
+                </GridPane>
+              </children>
+              <VBox.margin>
+                <Insets />
+              </VBox.margin>
+            </AnchorPane>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+  </children>
+</AnchorPane>

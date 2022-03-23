@@ -362,6 +362,10 @@ public class SettingsCtrl extends AbstractCtrl {
 	public void refresh(FitParams<FloatType> params, FitResults results) {
 		iThreshSpinner.setMax(getOps().stats().max(results.intensityMap).getRealDouble());
 		iThreshSpinner.getNumberProperty().setValue((double) params.iThresh);
+		binSizeSpinner.getNumberProperty().setValue((double) fp.getBinRadius());
+		if (fp.getAlgo() != null){
+			algoChoiceBox.setValue(FitType.valueOf(fp.getAlgo()));
+		}
 		noiseChoiceBox.setValue(params.noise);
 		nCompChoiceBox.setValue(params.nComp);
 		chisqTextField.setText(Utils.prettyFmt(results.chisq));

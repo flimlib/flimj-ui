@@ -23,6 +23,9 @@ public class MainCtrl extends AbstractCtrl {
 	private ExportCtrl exportTabController;
 
 	@FXML
+	private ConfigCtrl configTabController;
+
+	@FXML
 	private BorderPane windowOverlayAssembly;
 
 	@FXML
@@ -39,8 +42,10 @@ public class MainCtrl extends AbstractCtrl {
 		settingsTabController.setParentCtrl(this);
 		exportTabController.setFitProcessor(fp);
 		exportTabController.setParentCtrl(this);
+		configTabController.setFitProcessor(fp);
+		configTabController.setParentCtrl(this);
 		fp.setControllers(this, plotTabController, previewTabController, settingsTabController,
-				exportTabController);
+				exportTabController, configTabController);
 	}
 
 	/**
@@ -48,7 +53,7 @@ public class MainCtrl extends AbstractCtrl {
 	 * percentage; 1 for "Done"; -1 for indeterminate; <code>null</code> for
 	 * disabling the overlay. When the overlay is active, any other UI components
 	 * will be hidden behind and not accessible.
-	 * 
+	 *
 	 * @param progress the progress to show
 	 */
 	public void setProgress(Double progress) {
