@@ -32,6 +32,7 @@
                   <items>
                     <fx:include fx:id="settingsTab" source="settings-tab.fxml" />
                     <fx:include fx:id="exportTab" source="export-tab.fxml" />
+                    <fx:include fx:id="configTab" source="config-tab.fxml" />
                   </items>
                 </SplitPane>
               </items>
