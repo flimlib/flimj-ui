@@ -1,4 +1,4 @@
-[![](https://travis-ci.com/flimlib/flimj-ui.svg?branch=master)](https://travis-ci.com/flimlib/flimj-ui)
+[![](https://github.com/flimlib/flimj-ui/actions/workflows/build-main.yml/badge.svg)](https://github.com/flimlib/flimj-ui/actions/workflows/build-main.yml)
 
 # flimj-ui
 

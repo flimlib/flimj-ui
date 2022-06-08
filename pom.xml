@@ -82,8 +82,8 @@
 		<url>https://github.com/imagej/flimlib/flimj-ui/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Travis CI</system>
-		<url>https://travis-ci.com/flimlib/flimj-ui</url>
+		<system>GitHub Actions</system>
+		<url>https://github.com/flimlib/flimj-ui/actions</url>
 	</ciManagement>
 
 	<properties>
@@ -92,7 +92,7 @@
 		<license.copyrightOwners>Board of Regents of the University of Wisconsin-Madison.</license.copyrightOwners>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
-		<releaseProfiles>deploy-to-scijava</releaseProfiles>
+		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 
 		<flimlib.version>2.1.1</flimlib.version>
 		<flimj-ops.version>2.1.1</flimj-ops.version>
