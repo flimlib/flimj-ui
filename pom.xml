@@ -10,7 +10,7 @@
 
 	<groupId>flimlib</groupId>
 	<artifactId>flimj-ui</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.2.1-SNAPSHOT</version>
 
 	<name>FLIMJ</name>
 	<description>Fluorescence lifetime analysis in ImageJ.</description>
