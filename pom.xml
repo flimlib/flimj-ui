@@ -10,7 +10,7 @@
 
 	<groupId>flimlib</groupId>
 	<artifactId>flimj-ui</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.2.0</version>
 
 	<name>FLIMJ</name>
 	<description>Fluorescence lifetime analysis in ImageJ.</description>
@@ -61,7 +61,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/flimlib/flimj-ui</connection>
 		<developerConnection>scm:git:git@github.com:flimlib/flimj-ui</developerConnection>
-		<tag>HEAD</tag>
+		<tag>flimj-ui-1.2.0</tag>
 		<url>https://github.com/flimlib/flimj-ui</url>
 	</scm>
 	<issueManagement>
