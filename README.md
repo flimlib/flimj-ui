@@ -1,6 +1,4 @@
-[![](https://github.com/flimlib/flimj-ui/actions/workflows/build-main.yml/badge.svg)](https://github.com/flimlib/flimj-ui/actions/workflows/build-main.yml)
-
-# flimj-ui
+[![Build Status](https://github.com/flimlib/flimj-ui/actions/workflows/build.yml/badge.svg)](https://github.com/flimlib/flimj-ui/actions/workflows/build.yml)
 
 FLIMJ UI is an [ImageJ2 plugin](https://imagej.net/plugins) for FLIM analysis built on top of [FLIMJ Ops](https://github.com/flimlib/flimj-ops) using JavaFX. A detailed tutorial can be found on the [ImageJ wiki](https://imagej.net/plugins/flimj).
 
