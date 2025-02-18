@@ -78,11 +78,18 @@
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Board of Regents of the University of Wisconsin-Madison.</license.copyrightOwners>
 
+		<scijava.jvm.version>21</scijava.jvm.version>
+
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 
 		<flimlib.version>2.1.1</flimlib.version>
 		<flimj-ops.version>2.1.1</flimj-ops.version>
+		<javafx-base.version>23.0.2</javafx-base.version>
+		<javafx-controls.version>23.0.2</javafx-controls.version>
+		<javafx-fxml.version>23.0.1</javafx-fxml.version>
+		<javafx-graphics.version>23.0.2</javafx-graphics.version>
+		<javafx-swing.version>23.0.1</javafx-swing.version>
 		<controlsfx.version>8.40.15</controlsfx.version>
 	</properties>
 
@@ -135,6 +142,33 @@
 			<groupId>org.scijava</groupId>
 			<artifactId>scijava-common</artifactId>
 		</dependency>
+
+		<!-- JavaFX dependencies -->
+	<dependency>
+		<groupId>org.openjfx</groupId>
+		<artifactId>javafx-base</artifactId>
+		<version>${javafx-base.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.openjfx</groupId>
+		<artifactId>javafx-controls</artifactId>
+		<version>${javafx-controls.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.openjfx</groupId>
+		<artifactId>javafx-fxml</artifactId>
+		<version>${javafx-fxml.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.openjfx</groupId>
+		<artifactId>javafx-graphics</artifactId>
+		<version>${javafx-graphics.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.openjfx</groupId>
+		<artifactId>javafx-swing</artifactId>
+		<version>${javafx-swing.version}</version>
+	</dependency>
 
 		<!-- Other dependencies -->
 		<dependency>
