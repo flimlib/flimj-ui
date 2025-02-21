@@ -90,7 +90,7 @@
 		<javafx-fxml.version>23.0.1</javafx-fxml.version>
 		<javafx-graphics.version>23.0.2</javafx-graphics.version>
 		<javafx-swing.version>23.0.1</javafx-swing.version>
-		<controlsfx.version>8.40.15</controlsfx.version>
+		<controlsfx.version>11.2.1</controlsfx.version>
 	</properties>
 
 	<dependencies>
