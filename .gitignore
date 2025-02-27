@@ -5,3 +5,9 @@
 /.vscode/
 /target/
 /.factorypath
+
+# Maven #
+target/
+
+# vim #
+*.swp
