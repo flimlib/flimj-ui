@@ -206,6 +206,9 @@ public class SettingsCtrl extends AbstractCtrl {
 		noiseChoiceBox.setConverter(new StringConverter<NoiseType>() {
 			@Override
 			public String toString(NoiseType noiseType) {
+				if (noiseType == null) {
+					return "";
+				}
 				switch (noiseType) {
 					case NOISE_GAUSSIAN_FIT:
 						return "Gaussian (Fit)";
