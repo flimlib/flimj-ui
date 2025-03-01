@@ -39,7 +39,6 @@ import net.imglib2.view.Views;
 
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.widget.FileWidget;
 
 import flimlib.NoiseType;
 import flimlib.flimj.FitParams;
@@ -50,6 +49,7 @@ import flimlib.flimj.ui.FitProcessor.FitType;
 import flimlib.flimj.ui.Utils;
 import flimlib.flimj.ui.controls.NumericSpinner;
 import flimlib.flimj.ui.controls.NumericTextField;
+
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.application.Platform;
@@ -68,6 +68,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.Duration;
 
@@ -122,11 +124,17 @@ public class SettingsCtrl extends AbstractCtrl {
 
 	@Override
 	public void initialize() {
+		// initialize buffers
 		paramLabels = new ArrayList<>();
 		paramValues = new ArrayList<>();
 		paramFixed = new ArrayList<>();
 		paramIndices = new ArrayList<>();
 		presentDatasets = new HashMap<>();
+
+		// initialize file chooser
+		final var fcStage = new Stage();
+		final var fcUI = new FileChooser();
+
 		// keep only the table header (remove the preview parameters)
 		paramPane.getChildren().removeIf(child -> GridPane.getRowIndex(child) > 0);
 
@@ -297,8 +305,8 @@ public class SettingsCtrl extends AbstractCtrl {
 				// the name of selected dataset
 				String currentSelection = oldVal;
 				// choose from file
-				File irfFile = getUIs().chooseFile("Choose IRF transient file", null,
-						FileWidget.OPEN_STYLE);
+				fcUI.setTitle("Choose IRF transiet file");
+				File irfFile = fcUI.showOpenDialog(fcStage);
 				if (irfFile != null) {
 					// not cancelled
 					String irfPath = irfFile.getPath();

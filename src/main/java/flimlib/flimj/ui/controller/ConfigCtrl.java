@@ -23,18 +23,23 @@ package flimlib.flimj.ui.controller;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.io.FileWriter;
 import java.io.IOException;
-import org.scijava.widget.FileWidget;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 import flimlib.flimj.FitParams;
 import flimlib.flimj.ui.controls.NumericSpinner;
 import flimlib.flimj.ui.FitProcessor.FitType;
+
 import net.imglib2.type.numeric.real.FloatType;
 
 /**
@@ -44,7 +49,7 @@ public class ConfigCtrl extends AbstractCtrl {
 	@FXML
 	private NumericSpinner binSizeSpinner;
 
-    @FXML
+	@FXML
 	private Button configLoadButton;
 
 	@FXML
@@ -53,10 +58,15 @@ public class ConfigCtrl extends AbstractCtrl {
 	@Override
 	public void initialize() {
 
+		// initialize a file chooser
+		final var fcStage = new Stage();
+		final var fcUI = new FileChooser();
+
 		configSaveButton.setOnAction(event -> {
-            File cfgSavePath = getUIs().chooseFile("Choose config save path", new File("fit_config.txt"),
-            FileWidget.SAVE_STYLE);
-            if (cfgSavePath != null) {
+	    fcUI.setTitle("Choose config save path");
+	    fcUI.setInitialFileName("fit_config.txt");
+            File cfgSavePath = fcUI.showSaveDialog(fcStage);
+	    if (cfgSavePath != null) {
                 try {
                     FileWriter writer = new FileWriter(cfgSavePath);
                     String paramsJSONString = fp.getParams().toJSON();
@@ -75,9 +85,9 @@ public class ConfigCtrl extends AbstractCtrl {
 		});
 
 		configLoadButton.setOnAction(event -> {
-            File cfgLoadPath = getUIs().chooseFile("Choose config file", null,
-            FileWidget.OPEN_STYLE);
-            if (cfgLoadPath != null) {
+            fcUI.setTitle("Choose config file");
+	    File cfgLoadPath = fcUI.showOpenDialog(fcStage);
+	    if (cfgLoadPath != null) {
                 String cfgPath = cfgLoadPath.getPath();
                 if (cfgPath.endsWith(".txt")) {
                     try {
