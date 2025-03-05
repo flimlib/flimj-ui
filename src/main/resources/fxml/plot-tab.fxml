@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<?language JavaScript?>
 <?import javafx.geometry.Insets ?>
 <?import javafx.geometry.Rectangle2D ?>
 <?import javafx.scene.Cursor ?>
@@ -53,7 +52,7 @@
                         </LineChart>
                         <AnchorPane fx:id="fitPlotAreaPane" layoutX="62.0" layoutY="56.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="62.0" AnchorPane.rightAnchor="19.0" AnchorPane.topAnchor="56.0">
                           <children>
-                            <Group fx:id="lCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="0.0">
+                            <Group fx:id="lCsr" onMouseDragged="#handleMouseDragged" onMouseEntered="#handleMouseEntered" onMouseExited="#handleMouseExited" translateX="0.0">
                               <children>
                                 <Line fx:id="lCsrBar" endY="135.0" startY="0.0" />
                                 <Circle fx:id="lCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
@@ -62,7 +61,7 @@
                                 <Cursor fx:constant="H_RESIZE" />
                               </cursor>
                             </Group>
-                            <Group fx:id="rCsr" onMouseDragged="cursorDragged(event);" onMouseEntered="mouseOverCursor(event)" onMouseExited="mouseOffCursor(event)" translateX="440.0">
+                            <Group fx:id="rCsr" onMouseDragged="#handleMouseDragged" onMouseEntered="#handleMouseEntered" onMouseExited="#handleMouseExited" translateX="440.0">
                               <children>
                                 <Line fx:id="rCsrBar" endY="135.0" startY="0.0" />
                                 <Circle fx:id="rCsrCircle" centerX="0.0" centerY="69.0" fill="WHITE" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
@@ -189,5 +188,4 @@
       </content>
     </TitledPane>
   </children>
-  <fx:script charset="utf-8" source="../js/plotCtrl.js" />
 </AnchorPane>

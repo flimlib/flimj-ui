@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,6 +23,7 @@ package flimlib.flimj.ui.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -38,17 +39,24 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
+
 import org.controlsfx.control.HiddenSidesPane;
 import org.controlsfx.control.SegmentedButton;
+
+import net.imglib2.type.numeric.real.FloatType;
+
 import flimlib.flimj.FitParams;
 import flimlib.flimj.FitResults;
 import flimlib.flimj.ui.Utils;
 import flimlib.flimj.ui.VariableScaleAxis;
 import flimlib.flimj.ui.controls.NumericSpinner;
-import net.imglib2.type.numeric.real.FloatType;
 
 /**
  * The controller of the "Plot" tab.
@@ -59,15 +67,21 @@ public class PlotCtrl extends AbstractCtrl {
 	private static final int FIT_IDX = 1;
 	private static final int RES_IDX = 2;
 	private static final int IRF_IDX = 3;
-
 	private static final int BEG_IDX = 0;
 	private static final int END_IDX = 1;
-
 	private static final int N_PLOTS = 4;
 
 	/** cursors */
 	@FXML
-	private Group lCsr, rCsr;
+	private Group lCsr, rCsr, lCsr_res, rCsr_res;
+
+	/** cursor circle elements*/
+	@FXML
+	private Circle lCsrCircle, rCsrCircle;
+
+	/** cursor line elements*/
+	@FXML
+	private Line lCsrBar, rCsrBar, lCsrBar_res, rCsrBar_res;
 
 	/** cursor position spinners */
 	@FXML
@@ -95,6 +109,9 @@ public class PlotCtrl extends AbstractCtrl {
 
 	@FXML
 	private ImageView frostImageView;
+
+	@FXML
+	private ToggleButton linTB, logTB;
 
 	/** cursor positions */
 	private ObjectProperty<Double> lCsrPos, rCsrPos;
@@ -128,21 +145,40 @@ public class PlotCtrl extends AbstractCtrl {
 	@SuppressWarnings("unchecked")
 	public void initialize() {
 		// initialize properties with invalid values (corrected by refresh())
-		lCsrPos = new SimpleObjectProperty<>();
-		lCsrPos.set(-1.0);
-		rCsrPos = new SimpleObjectProperty<>();
-		rCsrPos.set(-1.0);
-		fitStart = new SimpleObjectProperty<>();
-		fitStart.set(-1);
-		fitEnd = new SimpleObjectProperty<>();
-		fitEnd.set(-1);
+		lCsrPos = new SimpleObjectProperty<>(-1.0);
+		rCsrPos = new SimpleObjectProperty<>(-1.0);
+		fitStart = new SimpleObjectProperty<>(-1);
+		fitEnd = new SimpleObjectProperty<>(-1);
 		lCsrSpinner.setMin(0.0);
 		rCsrSpinner.setMin(0.0);
 		lCsrSpinner.setMax(0.0);
 		rCsrSpinner.setMax(0.0);
 
+		// set cursor initial positions
+		lCsr.setTranslateX(0);
+		rCsr.setTranslateX(fitPlotAreaPane.getWidth());
+
+		// bind the X pos of the residual cursors so they move together
+		lCsr_res.translateXProperty().bind(lCsr.translateXProperty());
+		rCsr_res.translateXProperty().bind(rCsr.translateXProperty());
+
+		// fit the height of the bar with the plot height size
+		lCsrBar.endYProperty().bind(fitPlotAreaPane.heightProperty().subtract(1));
+		rCsrBar.endYProperty().bind(fitPlotAreaPane.heightProperty().subtract(1));
+		lCsrBar_res.endYProperty().bind(fitPlotAreaPane.heightProperty().subtract(1));
+		lCsrBar_res.endYProperty().bind(fitPlotAreaPane.heightProperty().subtract(1));
+
+		// link the two toggle buttons to the segmented button
+		fitYScaleSB.getButtons().addAll(linTB, logTB);
+		linTB.setSelected(true);
+
+		// initialize cursor listeners
 		initListeners(rCsr, rCsrPos, rCsrSpinner, fitEnd);
 		initListeners(lCsr, lCsrPos, lCsrSpinner, fitStart);
+
+		// initialize cursor mouse event handlers
+		initCursorEventHandlers(lCsr);
+		initCursorEventHandlers(rCsr);
 
 		fitPlotAreaPane.widthProperty().addListener((obs, oldVal, newVal) -> {
 			// == 0 at init
@@ -220,6 +256,17 @@ public class PlotCtrl extends AbstractCtrl {
 		});
 	}
 
+	/**
+	 * Clamps a value between min and max.
+	 * @param value The value to clamp.
+	 * @param min The minimum allowed value.
+	 * @param max The maximum allowed value.
+	 * @return The clamped value.
+	 */
+	private double clamp(double value, double min, double max) {
+		return Math.max(min, Math.min(value, max));
+	}
+
 	@Override
 	protected void refresh(FitParams<FloatType> params, FitResults results) {
 		nIntervals = params.trans.length - 1;
@@ -246,6 +293,75 @@ public class PlotCtrl extends AbstractCtrl {
 			phtnCntTextField.setText(getphtnCnt());
 		});
 
+	}
+
+	/**
+	 * Sets up mouse event handlers for a cursor group.
+	 *
+	 * @param cursor The cursor group to initialize.
+	 */
+	private void initCursorEventHandlers(Group cursor) {
+		// find the circle within the cursor group
+		var csrCircle = (Circle) cursor.lookup("#" + cursor.getId() + "Circle");
+
+		// create onMouseEntered event handler
+		cursor.setOnMouseEntered(event -> {
+			double newCenterY = clamp(event.getY(),
+					csrCircle.getRadius() * 2.5,
+					fitPlotAreaPane.getHeight() - csrCircle.getRadius() * 2.5);
+			csrCircle.setCenterY(newCenterY);
+			csrCircle.setScaleX(2);
+			csrCircle.setScaleY(2);
+		});
+
+		// create onMouseExited event handler
+		cursor.setOnMouseExited(event -> {
+			csrCircle.setScaleX(1);
+			csrCircle.setScaleY(1);
+		});
+
+		// create onMouseDragged event handler
+		cursor.setOnMouseDragged(event -> {
+			double newTranslateX = cursor.getTranslateX() + event.getX();
+			double min = 0.0;
+			double max = fitPlotAreaPane.getWidth();
+			if (cursor == rCsr) {
+				min = lCsr.getTranslateX();
+			} else if (cursor == lCsr) {
+				max = rCsr.getTranslateX();
+			}
+			cursor.setTranslateX(clamp(newTranslateX, min, max));
+		});
+	}
+
+	/**
+	 * Handle "mouse entered" events.
+	 *
+	 * @param event A mouse movement event.
+	 */
+	@FXML
+	private void handleMouseEntered(MouseEvent event) {
+		((Group) event.getSource()).getOnMouseEntered().handle(event);
+	}
+
+	/**
+	 * Handle "mouse exited" events.
+	 *
+	 * @param event A mouse movement event.
+	 */
+	@FXML
+	private void handleMouseExited(MouseEvent event) {
+		((Group) event.getSource()).getOnMouseExited().handle(event);
+	}
+
+	/**
+	 * Handle "mouse dragged" events.
+	 *
+	 * @param event A mouse movement event.
+	 */
+	@FXML
+	private void handleMouseDragged(MouseEvent event) {
+		((Group) event.getSource()).getOnMouseDragged().handle(event);
 	}
 
 	/**
