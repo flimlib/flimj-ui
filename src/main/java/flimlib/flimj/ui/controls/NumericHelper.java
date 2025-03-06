@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -22,12 +22,7 @@
 package flimlib.flimj.ui.controls;
 
 import java.util.HashMap;
-import org.controlsfx.tools.ValueExtractor;
-import org.controlsfx.validation.ValidationSupport;
-import org.controlsfx.validation.Validator;
-import org.controlsfx.validation.decoration.StyleClassValidationDecoration;
 
-import flimlib.flimj.ui.Utils;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -35,6 +30,13 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.Control;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+
+import org.controlsfx.tools.ValueExtractor;
+import org.controlsfx.validation.ValidationSupport;
+import org.controlsfx.validation.Validator;
+import org.controlsfx.validation.decoration.StyleClassValidationDecoration;
+
+import flimlib.flimj.ui.Utils;
 
 /**
  * The class defines a helper that takes over the control of a {@link Control} that has a
@@ -57,11 +59,12 @@ public class NumericHelper {
 
 	private double min = Double.NEGATIVE_INFINITY, max = Double.POSITIVE_INFINITY;
 
-	private final ValidationSupport vs;
+	private static ValidationSupport vs;
+	private static boolean isValidationInitialized = false;
 
 	/**
 	 * Constructs an {@link NumericHelper}.
-	 * 
+	 *
 	 * @param editor  the text field to harvest input
 	 * @param control the control to bind to
 	 * @param intOnly <code>true</code> if accepts integer only
@@ -70,8 +73,12 @@ public class NumericHelper {
 	public NumericHelper(TextField editor, Control control, boolean intOnly,
 			HashMap<String, Double> kwMap) {
 		this.kwMap = kwMap == null ? new HashMap<>() : kwMap;
-		vs = new ValidationSupport();
-		initValidationSupport();
+
+		// initialize validation support only if needed
+		if (vs == null) {
+			vs = new ValidationSupport();
+			initValidationSupport();
+		}
 
 		this.editor = editor;
 		this.control = control;
@@ -160,15 +167,40 @@ public class NumericHelper {
 		num.addListener((obs, oldVal, newVal) -> setFormatedVal());
 		isPercentage.addListener((obs, oldVal, newVal) -> setFormatedVal());
 
-		vs.registerValidator(control, Validator.<String>createPredicateValidator(
-				s -> Utils.matchesNumber(s) || this.kwMap.containsKey(s.toUpperCase()), ""));
+
+		// skip validation support registration if running in SceneBuilder
+		if (!isRunningInSceneBuilder()) {
+			vs.registerValidator(control, Validator.<String>createPredicateValidator(
+					s -> Utils.matchesNumber(s) || this.kwMap.containsKey(s.toUpperCase()), ""));
+		}
 	}
 
 	private void initValidationSupport() {
+		// do not initialize if already initialized
+		if (isValidationInitialized) {
+			return;
+		}
+
 		// support for spinner's textfield
 		ValueExtractor.addObservableValueExtractor(o -> o instanceof Spinner,
 				s -> ((Spinner<?>) s).getEditor().textProperty());
 		vs.setValidationDecorator(new StyleClassValidationDecoration("error-highlight", null));
+		isValidationInitialized = true;
+	}
+
+	/**
+	 * Detect if the code is running in SceneBuilder. SceneBuilder experinces a collision when
+	 * trying to register textfield validation support. Validation support is not needed to run
+	 * SceneBuilder, thus skipping the validation support bypasses this bug/collision.
+	 */
+	private boolean isRunningInSceneBuilder() {
+		try {
+			// check for a SceneBuilder class
+			Class.forName("com.oracle.javafx.scenebuilder.kit.editor.EditorController");
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
 	}
 
 	/**
