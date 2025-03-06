@@ -36,9 +36,6 @@
                   </VBox.margin>
                   <children>
                     <SplitPane dividerPositions="0.5" style="-fx-background-insets: 0, 0; -fx-padding: -1;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                      <fx:define>
-                        <DropShadow fx:id="csrEffect" blurType="ONE_PASS_BOX" color="#59d259" spread="0.5" />
-                      </fx:define>
                       <items>
                         <AnchorPane>
                           <children>
@@ -69,8 +66,8 @@
                                         <Line endY="10.0" startY="1.5" stroke="WHITE" />
                                         <Line endY="-10.0" startY="-1.5" stroke="WHITE" />
                                       </children>
-                                      <effect>
-                                        <fx:reference source="csrEffect" />
+				      <effect>
+					<DropShadow blurType="ONE_PASS_BOX" color="#59d259" spread="0.5" />
                                       </effect>
                                     </Group>
                                   </children>
@@ -116,8 +113,8 @@
                                         <Line endY="10.0" startY="1.5" stroke="WHITE" />
                                         <Line endY="-10.0" startY="-1.5" stroke="WHITE" />
                                       </children>
-                                      <effect>
-                                        <fx:reference source="csrEffect" />
+				      <effect>
+                        		<DropShadow blurType="ONE_PASS_BOX" color="#59d259" spread="0.5" />
                                       </effect>
                                     </Group>
                                   </children>
