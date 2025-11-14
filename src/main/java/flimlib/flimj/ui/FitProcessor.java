@@ -160,6 +160,7 @@ public class FitProcessor {
 		estimator.estimateStartEnd();
 		params.transMap = tmpTransMap;
 		params.getReturnCodeMap = true;
+		params.getChisqMap = true;
 	}
 
 	public void setControllers(AbstractCtrl... controllers) {
