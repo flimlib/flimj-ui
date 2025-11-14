@@ -149,6 +149,8 @@ public class FitProcessor {
 		persistentPreviewOptions = new ArrayList<>();
 		// this option is always present
 		persistentPreviewOptions.add("Intensity");
+		// chi-squared is available after fitting
+		persistentPreviewOptions.add("Chi-squared");
 
 		// calculate intensity and estimate start-end
 		RandomAccessibleInterval<FloatType> tmpTransMap = params.transMap;
@@ -539,6 +541,11 @@ public class FitProcessor {
 			case "Fit Status":
 				return fitStatus != null
 						? Views.hyperSlice(fitStatus, params.ltAxis, 0)
+						: null;
+
+			case "Chi-squared":
+				return results.chisqMap != null
+						? Views.hyperSlice(results.chisqMap, params.ltAxis, 0)
 						: null;
 		}
 
