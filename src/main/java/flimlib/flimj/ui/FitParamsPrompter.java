@@ -194,6 +194,7 @@ public final class FitParamsPrompter {
 		}
 		// Convert sliced FLIM data to float32 data type.
 		params.transMap = ops.convert().float32(Views.iterable(img));
+		params.getChisqMap = true;
 
 		return true;
 	}
