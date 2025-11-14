@@ -81,7 +81,7 @@ public class FitProcessor {
 
 	private RandomAccessibleInterval<FloatType> origTrans, binnedTrans, origIntensity;
 
-	private Img<FloatType> dispParams, irfIntensity, fitStatus;
+	private Img<FloatType> dispParams, irfIntensity, fitStatus, chisqStatus;
 
 	private String fitType;
 
@@ -503,6 +503,7 @@ public class FitProcessor {
 
 		dispParams = results.paramMap;
 		fitStatus = ops.convert().float32(results.retCodeMap);
+		chisqStatus = results.chisqMap;
 	}
 
 	/**
@@ -545,8 +546,8 @@ public class FitProcessor {
 						: null;
 
 			case "Chi-squared":
-				return results.chisqMap != null
-						? Views.hyperSlice(results.chisqMap, params.ltAxis, 0)
+				return chisqStatus != null
+						? Views.hyperSlice(chisqStatus, params.ltAxis, 0)
 						: null;
 		}
 
