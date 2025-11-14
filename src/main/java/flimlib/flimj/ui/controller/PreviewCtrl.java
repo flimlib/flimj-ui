@@ -486,8 +486,15 @@ public class PreviewCtrl extends AbstractCtrl {
 		} else
 			itr = Views.iterable(result);
 
-		RESULTS_CNVTR.setMin(getOps().stats().percentile(itr, 5).getRealDouble());
-		RESULTS_CNVTR.setMax(getOps().stats().percentile(itr, 95).getRealDouble());
+		// Check if the iterable has any data points before calculating percentiles
+		if (itr.size() > 0) {
+			RESULTS_CNVTR.setMin(getOps().stats().percentile(itr, 5).getRealDouble());
+			RESULTS_CNVTR.setMax(getOps().stats().percentile(itr, 95).getRealDouble());
+		} else {
+			// Fallback to min/max if no data points are available
+			RESULTS_CNVTR.setMin(getOps().stats().min(Views.iterable(result)).getRealDouble());
+			RESULTS_CNVTR.setMax(getOps().stats().max(Views.iterable(result)).getRealDouble());
+		}
 		RESULTS_CNVTR.setLUT(colorizeResult ? Utils.LIFETIME_LUT : ColorTables.GRAYS);
 
 		final RandomAccess<ARGBType> coloredIntensityRA =
