@@ -226,6 +226,18 @@ public class FitProcessor {
 		return ctx.service(c);
 	}
 
+	/**
+	 * Runs Support Plane Analysis on the current decay curve fit.
+	 *
+	 * @param percentRange maximum percentage deviation below and above (e.g. 20.0f)
+	 * @param nSteps       number of steps to evaluate below and above (e.g. 5)
+	 * @return the analysis result
+	 */
+	public SupportPlaneAnalysis.AnalysisResult runSupportPlaneAnalysis(float percentRange, int nSteps) {
+		return SupportPlaneAnalysis.run(this, percentRange, nSteps);
+	}
+
+
 	public void updateFit() {
 		updateFit(true);
 	}
@@ -333,6 +345,24 @@ public class FitProcessor {
 				fitFunc = MULTI_EXP;
 				nParam = 2 * params.nComp + 1;
 				break;
+		}
+
+		if (params != null && nParam > 0) {
+			int fillStart = params.paramFree != null ? params.paramFree.length : 0;
+			if (params.param == null || params.param.length != nParam) {
+				params.param = params.param != null ? Arrays.copyOf(params.param, nParam) : new float[nParam];
+				for (int i = fillStart; i < params.param.length; i++) {
+					params.param[i] = Float.POSITIVE_INFINITY;
+				}
+				params.paramMap = ArrayImgs.floats(params.param,
+						swapInLtAxis(new long[] {1, 1, nParam}, params.ltAxis));
+			}
+			if (params.paramFree == null || params.paramFree.length != nParam) {
+				params.paramFree = params.paramFree != null ? Arrays.copyOf(params.paramFree, nParam) : new boolean[nParam];
+				for (int i = fillStart; i < params.paramFree.length; i++) {
+					params.paramFree[i] = true;
+				}
+			}
 		}
 	}
 

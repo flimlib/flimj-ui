@@ -59,6 +59,7 @@
                   <columnConstraints>
                     <ColumnConstraints hgrow="ALWAYS" />
                     <ColumnConstraints minWidth="10.0" />
+                    <ColumnConstraints minWidth="10.0" />
                     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                   </columnConstraints>
                   <rowConstraints>
@@ -67,7 +68,8 @@
                   <children>
                     <Pane />
                     <Button fx:id="exportButton" mnemonicParsing="false" text="Export" GridPane.columnIndex="1" />
-                    <Pane GridPane.columnIndex="2" />
+                    <Button fx:id="exportSPAButton" mnemonicParsing="false" text="Support Plane Analysis (CSV)" GridPane.columnIndex="2" />
+                    <Pane GridPane.columnIndex="3" />
                   </children>
                 </GridPane>
               </children>

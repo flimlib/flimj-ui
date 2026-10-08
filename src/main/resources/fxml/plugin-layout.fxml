@@ -27,10 +27,11 @@
                     <fx:include fx:id="plotTab" source="plot-tab.fxml" />
                   </items>
                 </SplitPane>
-                <SplitPane dividerPositions="0.7667386609071275" orientation="VERTICAL" SplitPane.resizableWithParent="false">
+                <SplitPane dividerPositions="0.65, 0.78, 0.89" orientation="VERTICAL" SplitPane.resizableWithParent="false">
                   <items>
                     <fx:include fx:id="settingsTab" source="settings-tab.fxml" />
                     <fx:include fx:id="exportTab" source="export-tab.fxml" />
+                    <fx:include fx:id="supportPlaneTab" source="support-plane-tab.fxml" />
                     <fx:include fx:id="configTab" source="config-tab.fxml" />
                   </items>
                 </SplitPane>

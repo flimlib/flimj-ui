@@ -44,6 +44,9 @@ public class MainCtrl extends AbstractCtrl {
 	private ExportCtrl exportTabController;
 
 	@FXML
+	private SupportPlaneCtrl supportPlaneTabController;
+
+	@FXML
 	private ConfigCtrl configTabController;
 
 	@FXML
@@ -63,10 +66,12 @@ public class MainCtrl extends AbstractCtrl {
 		settingsTabController.setParentCtrl(this);
 		exportTabController.setFitProcessor(fp);
 		exportTabController.setParentCtrl(this);
+		supportPlaneTabController.setFitProcessor(fp);
+		supportPlaneTabController.setParentCtrl(this);
 		configTabController.setFitProcessor(fp);
 		configTabController.setParentCtrl(this);
 		fp.setControllers(this, plotTabController, previewTabController, settingsTabController,
-				exportTabController, configTabController);
+				exportTabController, supportPlaneTabController, configTabController);
 	}
 
 	/**
