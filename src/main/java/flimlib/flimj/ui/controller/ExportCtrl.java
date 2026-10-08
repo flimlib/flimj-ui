@@ -29,6 +29,7 @@ import java.util.List;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.IndexedCheckModel;
 import org.scijava.widget.FileWidget;
+import javafx.stage.Stage;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -50,6 +51,9 @@ public class ExportCtrl extends AbstractCtrl {
 
 	@FXML
 	private Button exportButton;
+
+	@FXML
+	private Button exportSPAButton;
 
 	@FXML
 	private CheckComboBox<String> exportComboBox;
@@ -103,6 +107,60 @@ public class ExportCtrl extends AbstractCtrl {
 
 		// export with LUT by default
 		withLUTCheckBox.setSelected(true);
+
+		if (exportSPAButton != null) {
+			final var fcStage = new Stage();
+			final var fcUI = new javafx.stage.FileChooser();
+			fcUI.getExtensionFilters().addAll(
+					new javafx.stage.FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv"),
+					new javafx.stage.FileChooser.ExtensionFilter("All files (*.*)", "*.*"));
+
+			exportSPAButton.setOnAction(event -> {
+				fcUI.setTitle("Save Support Plane Analysis CSV");
+				fcUI.setInitialFileName("support_plane_analysis.csv");
+				File csvSavePath = fcUI.showSaveDialog(fcStage);
+				if (csvSavePath != null) {
+					MainCtrl mainCtrl = (parentCtrl instanceof MainCtrl) ? (MainCtrl) parentCtrl : null;
+					if (mainCtrl != null) {
+						mainCtrl.setProgress(-1.0);
+					}
+					fp.submitRunnable(() -> {
+						try {
+							flimlib.flimj.ui.SupportPlaneAnalysis.AnalysisResult result =
+									fp.runSupportPlaneAnalysis(20.0f, 5);
+							result.saveToFile(csvSavePath);
+
+							javafx.application.Platform.runLater(() -> {
+								if (mainCtrl != null) {
+									mainCtrl.setProgress(null);
+								}
+								javafx.scene.control.Alert alert =
+										new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+								alert.setTitle("Support Plane Analysis");
+								alert.setHeaderText("CSV Saved Successfully");
+								alert.setContentText(String.format(
+										"Support Plane Analysis (%s)\nsaved %d points to:\n%s",
+										flimlib.flimj.ui.SupportPlaneAnalysis.ATTRIBUTION,
+										result.points.size(), csvSavePath.getAbsolutePath()));
+								alert.show();
+							});
+						} catch (Exception e) {
+							javafx.application.Platform.runLater(() -> {
+								if (mainCtrl != null) {
+									mainCtrl.setProgress(null);
+								}
+								javafx.scene.control.Alert alert =
+										new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+								alert.setTitle("Support Plane Analysis Error");
+								alert.setHeaderText("Failed to save Support Plane Analysis CSV");
+								alert.setContentText(e.getMessage());
+								alert.show();
+							});
+						}
+					});
+				}
+			});
+		}
 	}
 
 	@Override

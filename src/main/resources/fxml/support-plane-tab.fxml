@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<?import flimlib.flimj.ui.controls.NumericSpinner ?>
+<?import javafx.geometry.Insets ?>
+<?import javafx.scene.control.Button ?>
+<?import javafx.scene.control.Label ?>
+<?import javafx.scene.control.SplitPane ?>
+<?import javafx.scene.control.TitledPane ?>
+<?import javafx.scene.layout.AnchorPane ?>
+<?import javafx.scene.layout.ColumnConstraints ?>
+<?import javafx.scene.layout.GridPane ?>
+<?import javafx.scene.layout.Pane ?>
+<?import javafx.scene.layout.RowConstraints ?>
+<?import javafx.scene.layout.VBox ?>
+<?import javafx.scene.text.Text ?>
+
+<AnchorPane stylesheets="@../css/plot.css" SplitPane.resizableWithParent="false" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="flimlib.flimj.ui.controller.SupportPlaneCtrl">
+  <children>
+    <TitledPane collapsible="false" text="Support Plane Analysis" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <content>
+        <VBox styleClass="flim-tab-vbox">
+          <children>
+            <VBox styleClass="tab-pane-list-vbox">
+              <children>
+                <AnchorPane>
+                  <children>
+                    <GridPane styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                        <ColumnConstraints />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="5.0" vgrow="SOMETIMES" />
+                      </rowConstraints>
+                      <children>
+                        <Pane />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Reference" GridPane.columnIndex="1" />
+                        <Label text="Lakowicz 2006 Section 4.10.3 p. 134" style="-fx-font-style: italic; -fx-font-size: 10px; -fx-text-fill: #555555;" wrapText="true" GridPane.columnIndex="2" />
+                        <Pane GridPane.columnIndex="3" />
+
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Range (± %)" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <NumericSpinner fx:id="rangeSpinner" prefWidth="130.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Steps / side" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <NumericSpinner fx:id="stepsSpinner" prefWidth="130.0" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                      </children>
+                    </GridPane>
+                  </children>
+                  <VBox.margin>
+                    <Insets />
+                  </VBox.margin>
+                </AnchorPane>
+              </children>
+            </VBox>
+            <Pane minHeight="0.0" VBox.vgrow="ALWAYS" />
+            <AnchorPane styleClass="tab-toolbar">
+              <children>
+                <GridPane alignment="CENTER" styleClass="tab-grid-pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints minWidth="10.0" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                  <children>
+                    <Pane />
+                    <Button fx:id="saveCSVButton" mnemonicParsing="false" text="Save CSV" GridPane.columnIndex="1" />
+                    <Pane GridPane.columnIndex="2" />
+                  </children>
+                </GridPane>
+              </children>
+              <VBox.margin>
+                <Insets />
+              </VBox.margin>
+            </AnchorPane>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+  </children>
+</AnchorPane>
